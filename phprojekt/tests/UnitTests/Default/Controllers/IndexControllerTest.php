@@ -134,6 +134,30 @@ class Phprojekt_IndexController_Test extends FrontInit
     }
 
     /**
+     * Test of json get modules permession with roles/rights
+     */
+    public function testJsonGetModulesPermission2()
+    {
+        $authNamespace = new Zend_Session_Namespace('Phprojekt_Auth-login');
+        $authNamespace->userId = 2;
+        $authNamespace->admin = 0;
+        $this->setRequestUrl('Default/index/jsonGetModulesPermission/nodeId/2');
+        $response = $this->getResponse();
+        $array = FrontInit::PhprJsonToArray($response);
+        $this->assertEquals($array[1]['rights'], array(
+            'none' => false,
+            'read' => true,
+            'write' => true,
+            'access' => true,
+            'create' => false ,
+            'copy' => false,
+            'delete' => false,
+            'download' => false,
+            'admin' => false
+        ));
+    }
+
+    /**
      * Test of json get submodules -without a project Id-
      */
     public function testJsonGetModulesPermissionNoId()
