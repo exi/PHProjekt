@@ -34,17 +34,8 @@ dojo.declare("phpr.Default.System.TemplatedLayoutContainer", [dijit.layout.Conte
         constructor: function() {
             this.templateString = "";
         },
-        destroy: function() {
-            if (this._beingDestroyed) {
-                return;
-            }
-            this.inherited(arguments);
-            dojo.forEach(dijit.findWidgets(this.domNode),
-                    function(w) {
-                        if (dojo.isFunction(w.destroyRecursive)) {
-                            w.destroyRecursive();
-                        }
-                    });
+        destroyRendering: function() {
+            dijit._WidgetBase._meta.hidden.destroyRendering.apply(this, arguments);
         },
         postCreate: function() {
             this.inherited(arguments);
@@ -56,6 +47,7 @@ dojo.declare("phpr.Default.System.TemplatedLayoutContainer", [dijit.layout.Conte
                 }
             }
             dojo.addClass(this.domNode, "phprTemplatedLayoutContainer");
+            this._supportingWidgets = [];
         }
     }
 );
