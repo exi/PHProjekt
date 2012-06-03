@@ -81,10 +81,11 @@ class Calendar2_Models_CalendarInformation extends Phprojekt_ModelInformation_De
             )
         );
         $this->fillField('participants', 'Participants', 'hidden', 0, 9);
-        $this->fillField('rrule', 'Rrule', 'hidden', 0, 10);
+        $this->fillField('externalParticipants', 'External Participants', 'hidden', 0, 10);
+        $this->fillField('rrule', 'Rrule', 'hidden', 0, 11);
         $this->fillField('recurrence', 'Recurrence', 'hidden', 5, 0);
-        $this->fillField('confirmationStatuses', 'Confirmation Statuses', 'hidden', 0, 11);
-        $this->fillField('ownerId', 'ownerId', 'hidden', 0, 12, array('integer' => true));
+        $this->fillField('confirmationStatuses', 'Confirmation Statuses', 'hidden', 0, 12);
+        $this->fillField('ownerId', 'ownerId', 'hidden', 0, 13, array('integer' => true));
     }
 
     /**

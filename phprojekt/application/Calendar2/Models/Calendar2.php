@@ -738,6 +738,16 @@ class Calendar2_Models_Calendar2 extends Phprojekt_Item_Abstract
     }
 
     /**
+     * Get the external participants of this event.
+     *
+     * @return array of int
+     */
+    public function getExternalParticipants()
+    {
+        return array("reno.reckling@mayflower.de", "foo@example.com");
+    }
+
+    /**
      * Returns the occurrence that identifies this event in it's series.
      * It's just the start time, except that it's always in UTC.
      *
