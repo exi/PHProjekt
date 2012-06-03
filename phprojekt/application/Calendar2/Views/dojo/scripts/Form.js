@@ -28,13 +28,11 @@ dojo.declare("phpr.Calendar2.Form", phpr.Default.DialogForm, {
     _currentDate:          null,
     _currentTime:          null,
     _updateCacheIds:       null,
-    _participantsInDb:     null,
-    _participantsInTab:    null,
     _originalData:         null,
 
     _FRMWIDG_BASICDATA:  0,
     _FRMWIDG_PARTICIP:   1,
-    _FRMWIDG_RECURRENCE: 2,
+    _FRMWIDG_RECURRENCE: 3,
 
     initData: function() {
         // Get all the active users
@@ -128,6 +126,9 @@ dojo.declare("phpr.Calendar2.Form", phpr.Default.DialogForm, {
 
         if (this._owner) {
             def = this.addParticipantsTab(data);
+            def = dojo.when(def, dojo.hitch(this, function() {
+                return this.addExternalParticipantsTab(data);
+            }));
         }
 
         def = dojo.when(def, dojo.hitch(this, function() {
@@ -274,8 +275,6 @@ dojo.declare("phpr.Calendar2.Form", phpr.Default.DialogForm, {
                 });
             }
         }
-        this._participantsInDb  = participants.length;
-        this._participantsInTab = participants.length;
 
         // Template for the participants tab
         this._participantData = new phpr.Default.System.TemplateWrapper({
@@ -358,8 +357,6 @@ dojo.declare("phpr.Calendar2.Form", phpr.Default.DialogForm, {
             var tmp = new dijit.form.Button(params);
             dojo.byId(buttonName).appendChild(tmp.domNode);
             dojo.connect(dijit.byId(tmp.id), "onClick", dojo.hitch(this, "deleteParticipant", userId));
-
-            this._participantsInTab += 1;
         }
     },
 
@@ -412,7 +409,239 @@ dojo.declare("phpr.Calendar2.Form", phpr.Default.DialogForm, {
         var e      = dojo.byId("trParticipantFor" + userId);
         var parent = e.parentNode;
         parent.removeChild(e);
-        this._participantsInTab -= 1;
+    },
+
+    addExternalParticipantsTab: function(data) {
+        var fetchParams = {
+            url: phpr.webpath + 'index.php/Contact/index/jsonList/nodeId/1/recursive/false'
+        };
+
+        phpr.DataStore.addStore(fetchParams);
+        var def = phpr.DataStore.requestData(fetchParams).then(
+            dojo.hitch(this, '_addExternalParticipantsTabWithData', data)
+        );
+        return def;
+    },
+
+    _addExternalParticipantsTabWithData: function(data, contactsData) {
+        if (!dojo.isArray(data) || !data[0] || !contactsData || !contactsData.data) {
+            console.error('data missing');
+            return;
+        }
+
+        var externalParticipantsData = data[0].externalParticipants || [];
+        var externalParticipants = [];
+        var contacts = contactsData.data;
+        var contactMap = {};
+        var items = [];
+        var that = this;
+
+        dojo.forEach(
+            dojo.filter(contacts, function (contact) {
+                    return !!contact.email;
+                }
+            ),
+            function(contact) {
+                var item = {
+                    email: contact.email,
+                    name: contact.email + ' ' + contact.name
+                };
+
+                items.push(item);
+                contactMap[item.email] = item;
+            }
+        );
+
+        dojo.forEach(externalParticipantsData, function(email) {
+            if (contactMap.hasOwnProperty(email)) {
+                externalParticipants.push(contactMap[email]);
+            } else {
+                externalParticipants.push({
+                    email: email,
+                    name: email
+                });
+            }
+        });
+
+        this._externalParticipants = items;
+
+        this._externalParticipantsTab = new phpr.Default.System.TemplateWrapper({
+            templateName: 'phpr.Calendar2.template.externalParticipantTab.html',
+            templateData: {
+                participantUserText: phpr.nls.get('User'),
+                participantActionText: phpr.nls.get('Action'),
+                participantAvailabilityText: phpr.nls.get('Availability')
+            }
+        });
+
+        this._externalParticipantsWidget = new dijit.form.FilteringSelect(
+            {
+                store: new dojo.data.ItemFileReadStore({
+                    data: {
+                        items: dojo.clone(items)
+                    }
+                }),
+                searchAttr: 'name',
+                queryExpr: '*${0}*',
+                autoComplete: false,
+                validate: function() {
+                    var value = this.get('displayedValue');
+                    var ret = dijit.form.FilteringSelect.superclass.validate.call(this, arguments);
+
+                    if (that._findExternalParticipantIdxByEMail(value) !== -1 ||
+                        that._findExternalParticipantIdxByName(value) !== -1) {
+                        this.set('message', phpr.nls.get('Value already in list!'));
+                        this._set('state', 'Error');
+                        ret = false;
+                    }
+
+                    return ret;
+                },
+                isValid: function () {
+                    var regex = /.+@.+\..+/;
+                    var value = this.get('displayedValue');
+
+                    if (value !== '' && !regex.test(value)) {
+                        return false;
+                    }
+
+                    return true;
+                }
+            },
+            this._externalParticipantsTab.externalParticipantsInput
+        );
+
+        this._externalParticipantsWidget.connect(
+            this._externalParticipantsWidget,
+            'onKeyDown',
+            function(evt) {
+                if (evt.which === dojo.keys.ENTER &&
+                        this.get('displayedValue') !== '') {
+                    dojo.stopEvent(evt);
+                    if (this.validate()) {
+                        that.newExternalParticipant();
+                    }
+                }
+            }
+        );
+
+        var def = this.addTab(
+            [this._externalParticipantsTab],
+            'tabExternalParticipants',
+            'External Participants',
+            'externalParticipantsFormTab'
+        );
+
+        def.then(dojo.hitch(this, function() {
+            // Add button for participant
+            var params = {
+                label: '',
+                iconClass: 'add',
+                alt: 'Add',
+                baseClass: 'smallIcon'
+            };
+
+            newParticipant = new dijit.form.Button(params);
+            this._externalParticipantsTab.participantAddButton.appendChild(newParticipant.domNode);
+            newParticipant.connect(
+                newParticipant, 'onClick', dojo.hitch(this, 'newExternalParticipant')
+            );
+
+            dojo.forEach(
+                externalParticipants,
+                function(item) {
+                    this._addExternalParticipantsRow(item);
+                },
+                this
+            );
+        }));
+    },
+
+    _addExternalParticipantsRow: function(item) {
+        var widget = new phpr.Default.System.TemplateWrapper({
+            templateName: 'phpr.Calendar2.template.externalParticipantRow.html',
+            templateData: {
+                value: dojo.toJson(item.email),
+                text: item.name
+            }
+        });
+
+        var idx = this._findExternalParticipantIdxByName(item.name);
+
+        if (idx === -1) {
+            idx = this._externalParticipants.push(item) - 1;
+        }
+
+        this._externalParticipants[idx].widget = widget;
+        widget.deleteButton.connect(
+            widget.deleteButton, 'onClick', dojo.hitch(this, 'deleteExternalParticipant', item.email)
+        );
+        dojo.place(widget.domNode, this._externalParticipantsTab.tableBody, 'last');
+    },
+
+    _findExternalParticipantIdxByName: function(name) {
+        var l = this._externalParticipants.length;
+        for (var i = 0; i < l; i++) {
+            if (this._externalParticipants[i].name === name) {
+                return i;
+            }
+        }
+
+        return -1;
+    },
+
+    _findExternalParticipantIdxByEMail: function(email) {
+        var l = this._externalParticipants.length;
+        for (var i = 0; i < l; i++) {
+            if (this._externalParticipants[i].email === email) {
+                return i;
+            }
+        }
+
+        return -1;
+    },
+
+    newExternalParticipant: function() {
+        var widget = this._externalParticipantsWidget;
+
+        if (!widget.validate()) {
+            return;
+        }
+
+        var displayed = widget.get('displayedValue');
+
+        var id = widget.get('value');
+        var item;
+        if ((id !== '' || ((id = this._findExternalParticipantIdxByEMail(displayed)) !== -1)) &&
+                this._externalParticipants[id].name === displayed) {
+            item = this._externalParticipants[id];
+        } else {
+            if (displayed === '') {
+                return;
+            }
+
+            item = {
+                email: displayed,
+                name: displayed
+            };
+        }
+
+        if (!item.widget) {
+            this._addExternalParticipantsRow(item);
+        }
+
+        widget.set('value', null);
+        widget.reset();
+    },
+
+    deleteExternalParticipant: function(email) {
+        var idx = this._findExternalParticipantIdxByEMail(email);
+        var item = this._externalParticipants[idx];
+
+        if (item && item.widget) {
+            item.widget.destroyRecursive();
+            delete item.widget;
+        }
     },
 
     addRecurrenceTab: function(data) {
