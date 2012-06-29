@@ -1,4 +1,3 @@
-dojo.provide("MainAssistant");
 dojo.require("dojox.mobile.app.SceneAssistant");
 
 dojo.declare("MainAssistant", dojox.mobile.app.SceneAssistant, {
@@ -40,7 +39,7 @@ dojo.declare("MainAssistant", dojox.mobile.app.SceneAssistant, {
     dojo.connect(listWidget, "onSelect", function(data, index, rowNode){
       try {
         console.log("selected data item  ", data);
-        _this.controller.query(".listInfo")[0].innerHTML 
+        _this.controller.query(".listInfo")[0].innerHTML
                 = "Selected (" + index + ") '" + data.label + "'";
       } catch(e){
         console.log("caught ", e);

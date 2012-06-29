@@ -25,15 +25,13 @@
 		}
 	</style>
 	<script src='../../../dojo/dojo.js' djConfig='isDebug:true, parseOnLoad:true'></script>
-	<script src='../../../dojo/html.js'></script>
-	<script src='../../../dojox/html/_base.js'></script>
-	<script src='../../../dojox/layout/ContentPane.js'></script>
 	<script>
 		dojo.require('doh.runner');
 		dojo.require('dojox.layout.ContentPane');
 		dojo.require('dojo.parser');
 		dojo.require('dijit._Container');
 		dojo.require('dijit._Templated');
+		dojo.require('dojo._base.url');
 
 
 		// create a do nothing, only for test widget
@@ -92,7 +90,7 @@
 							var cont = "<div dojoType='dojox.TestWidget'>Test</div>";
 							pane1.attr('content', cont);
 							t.assertFalse(cont.toLowerCase() == pane1.domNode.innerHTML.toLowerCase());
-							t.assertEqual(1, dijit._Container.prototype.getChildren.call(pane1).length);
+							t.assertEqual(1, pane1.getChildren().length);
 						}
 					},
 					{
@@ -587,6 +585,51 @@
 						},
 						tearDown: function(){
 							delete pane1.cleanContent; // go back to default
+						}
+					},
+					{
+						name: "scriptsCommentedOutAndEmptyComments",
+						runTest: function(t){
+							var content = ["<html>\n",
+											"<head>\n",
+											"</head>\n",
+											"<body>\n",
+											"\n",
+											"<!--\n", 
+											"   Some random comment\n",
+											"-->\n",
+											"\n",
+											"Random text before blank comment.\n",
+											"\n",
+											"<!-- -->\n",
+											"\n",
+											"<!--\n",
+											"  <" ,"script type=\"text/javascript\">\n",
+											"    shouldNotBeDefined = true;\n",
+											"  <", "/script>\n",
+											"-->\n",
+											"\n",	
+											"<script type=\"text/javascript\">\n",
+											"  // Junk JS.\n",
+											"  shouldBeDefined = true;\n",
+											"  shouldBeDefined = true;\n",
+											"  shouldBeDefined = true;\n",
+											"  shouldBeDefined = true;\n",
+											"  shouldBeDefined = true;\n",
+											"  shouldBeDefined = true;\n",
+											"  shouldBeDefined = true;\n",
+											"<", "/script>\n",
+											"</body>\n",
+											"</html>\n"].join("");
+							pane1.attr("content", content);
+
+							// let IE inhale here
+							var d = new t.Deferred();
+							setTimeout(d.getTestCallback(function(){
+								t.assertEqual("boolean" , typeof shouldBeDefined);
+								t.assertEqual("undefined" , typeof shouldNotBeDefined);
+							}), 40);
+							return d;
 						}
 					},
 					{

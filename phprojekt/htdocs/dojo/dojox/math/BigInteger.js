@@ -1,13 +1,14 @@
-dojo.provide("dojox.math.BigInteger");
-dojo.experimental("dojox.math.BigInteger");
+// AMD-ID "dojox/math/BigInteger"
+define(["dojo", "dojox"], function(dojo, dojox) {
+
+	dojo.getObject("math.BigInteger", true, dojox);
+	dojo.experimental("dojox.math.BigInteger");
 
 // Contributed under CLA by Tom Wu <tjw@cs.Stanford.EDU>
 // See http://www-cs-students.stanford.edu/~tjw/jsbn/ for details.
 
 // Basic JavaScript BN library - subset useful for RSA encryption.
 // The API for dojox.math.BigInteger closely resembles that of the java.math.BigInteger class in Java.
-
-(function(){
 
 	// Bits per digit
 	var dbits;
@@ -571,16 +572,18 @@ dojo.experimental("dojox.math.BigInteger");
 		// "constants"
 		ZERO:	nbv(0),
 		ONE:	nbv(1),
-		
+
 		// internal functions
 		_nbi: nbi,
 		_nbv: nbv,
 		_nbits: nbits,
-		
+
 		// internal classes
 		_Montgomery: Montgomery
 	});
 
 	// export to DojoX
 	dojox.math.BigInteger = BigInteger;
-})();
+
+	return dojox.math.BigInteger;
+});

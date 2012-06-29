@@ -1,8 +1,10 @@
+define(
+//begin v1.x content
 ({
 // local representation of all CSS3 named colors, companion to dojo.colors.  To be used where descriptive information
 // is required for each color, such as a palette widget, and not for specifying color programatically.
 
-//Note: due to the SVG 1.0 spec additions, some of these are alternate spellings for the same color e.g. gray vs. gray. 
+//Note: due to the SVG 1.0 spec additions, some of these are alternate spellings for the same color e.g. gray vs. gray.
 //TODO: should we be using unique rgb values as keys instead and avoid these duplicates, or rely on the caller to do the reverse mapping?
 aliceblue: "σιέλ",
 antiquewhite: "ξεθωριασμένο λευκό",
@@ -144,6 +146,7 @@ tan: "ώχρα",
 teal: "πετρόλ",
 thistle: "μωβ βιολετί",
 tomato: "κόκκινο της ντομάτας",
+transparent: "διαφανές",
 turquoise: "τυρκουάζ",
 violet: "βιολετί",
 wheat: "σταρένιο",
@@ -152,3 +155,5 @@ whitesmoke: "λευκός καπνός",
 yellow: "κίτρινο",
 yellowgreen: "κιτρινοπράσινο"
 })
+//end v1.x content
+);

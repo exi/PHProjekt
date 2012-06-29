@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	smiley: "Inserare emoticoane",
 	emoticonSmile: "zâmbet",
@@ -5,8 +7,8 @@
 	emoticonWink: "face cu ochiul",
 	emoticonGrin: "rânjet",
 	emoticonCool: "calm",
-	emoticonAngry: "furios",  
-	emoticonHalf: "jumătate", 
+	emoticonAngry: "furios",
+	emoticonHalf: "jumătate",
 	emoticonEyebrow: "sprânceană",
 	emoticonFrown: "posac",
 	emoticonShy: "timid",
@@ -15,8 +17,11 @@
 	emoticonTongue: "limbă",
 	emoticonIdea: "idee",
 	emoticonYes: "da",
-	emoticonNo: "nu",	
+	emoticonNo: "nu",
 	emoticonAngel: "înger",
-	emoticonCrying: "plâns"
+	emoticonCrying: "plâns",
+	emoticonHappy: "fericit"
 })
 
+//end v1.x content
+);

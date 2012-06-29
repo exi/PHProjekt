@@ -2,10 +2,9 @@
 	
 	// for this to work, the file api.html needs to be writable locally. pass a "?build" to
 	// this url to trigger the generation. otherwise, work live from here. No JS ends up 
-	// in the output. api.css gets inlined in the output, making api.html standalone. 
+	// in the output. api.css gets inlined in the output, making cheat.html standalone. 
 	
-	$head = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-		"http://www.w3.org/TR/html4/strict.dtd">
+	$head = '<!DOCTYPE html>
 	<html>
 		<head>
 			<title>API Overview - Dojo Toolkit</title>
@@ -17,8 +16,7 @@
 	if(!empty($_POST['body'])){
 		
 		$head .= "<style type='text/css'>" . file_get_contents("cheat/cheat.css") ."</style></head><body>";
-		$page = $head . $_POST['body'] . "<div class='note'><p>Dojo " . $_POST['version'] . 
-			" Docs generated " . date("Y-m-d") . "</p></div>" . $foot;
+		$page = $head . $_POST['body'] . $foot;
 			
 		if(is_writable("./cheat.html")){
 			file_put_contents("./cheat.html", stripslashes($page));
@@ -39,7 +37,7 @@
 
 		<script type="text/javascript">		
 			dojo.require("util.docscripts.cheat.lib");
-			dojo.addOnLoad(function(){
+			dojo.ready(function(){
 				
  				// a list of things to ignore in the dojo namespace (either useless, or handled specially)
 				var ap = util.docscripts.cheat.lib;
@@ -122,6 +120,8 @@
 					}
 				});
 				
+				dojo.byId("version").innerHTML = dojo.version;
+				
 			});
 		</script>
 	
@@ -140,9 +140,10 @@
 							<li>dk = d.keys</li>
 						</ul>
 					</fieldset>
-				</div>				
+				</div>
 			</div>
 		</fieldset>
 		<div id="container"></div>
+		<span id="version"></span>
 	</body>
 </html>

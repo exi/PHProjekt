@@ -1,8 +1,6 @@
-dojo.provide("dojox.sketch.SingleArrowAnnotation");
-dojo.require("dojox.sketch.Annotation");
-dojo.require("dojox.sketch.Anchor");
+define(["dojo/_base/kernel", "dojo/_base/lang", "./Annotation", "./Anchor"], function(dojo){
+	dojo.getObject("sketch", true, dojox);
 
-(function(){
 	var ta=dojox.sketch;
 	ta.SingleArrowAnnotation=function(figure, id){
 		ta.Annotation.call(this, figure, id);
@@ -64,7 +62,7 @@ dojo.require("dojox.sketch.Anchor");
 			}
 			if(this.start.y<this.end.y){
 				y=this.end.y+this.calculate.dy(this.control, this.end, offset)+this.textYOffset;
-			} else { 
+			} else {
 				y=this.end.y+this.calculate.dy(this.control, this.end, -offset);
 			}
 		}
@@ -78,7 +76,7 @@ dojo.require("dojox.sketch.Anchor");
 		
 		for(var i=0; i<obj.childNodes.length; i++){
 			var c=obj.childNodes[i];
-			if(c.localName=="text"){ 
+			if(c.localName=="text"){
 				this.property('label',c.childNodes.length?c.childNodes[0].nodeValue:'');
 			}
 			else if(c.localName=="path"){
@@ -133,9 +131,9 @@ dojo.require("dojox.sketch.Anchor");
 		this.arrowhead=this.arrowheadGroup.createPath();//"M0,0 l50,-10 -6,10 6,10 Z").setFill(this.property('fill'));
 
 		this.labelShape=this.shape.createText({
-				x:this.textPosition.x, 
-				y:this.textPosition.y, 
-				text:this.property('label'), 
+				x:this.textPosition.x,
+				y:this.textPosition.y,
+				text:this.property('label'),
 				align:this.textAlign
 			})
 			//.setFont(font)
@@ -171,9 +169,9 @@ dojo.require("dojox.sketch.Anchor");
 		this.arrowhead.setFill(this.property('fill'));
 
 		this.labelShape.setShape({
-				x:this.textPosition.x, 
-				y:this.textPosition.y, 
-				text:this.property('label'), 
+				x:this.textPosition.x,
+				y:this.textPosition.y,
+				text:this.property('label'),
 				align:this.textAlign
 			})
 			.setFill(this.property('fill'));
@@ -224,4 +222,5 @@ dojo.require("dojox.sketch.Anchor");
 	};
 
 	ta.Annotation.register("SingleArrow");
-})();
+	return dojox.sketch.SingleArrowAnnotation;
+});

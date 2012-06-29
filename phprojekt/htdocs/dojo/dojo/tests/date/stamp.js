@@ -1,8 +1,8 @@
-dojo.provide("tests.date.stamp");
+dojo.provide("dojo.tests.date.stamp");
 
 dojo.require("dojo.date.stamp");
 
-tests.register("tests.date.stamp", 
+tests.register("tests.date.stamp",
 	[
 function test_date_iso(t){
 	var rfc  = "2005-06-29T08:05:00-07:00";

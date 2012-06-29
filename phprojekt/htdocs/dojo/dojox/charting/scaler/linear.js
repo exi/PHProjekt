@@ -1,14 +1,13 @@
-dojo.provide("dojox.charting.scaler.linear");
-dojo.require("dojox.charting.scaler.common");
-
-(function(){
+define(["dojo/_base/lang", "./common"], 
+	function(lang, common){
+	var linear = lang.getObject("dojox.charting.scaler.linear", true);
+	
 	var deltaLimit = 3,	// pixels
-		dc = dojox.charting, dcs = dc.scaler, dcsc = dcs.common,
-		findString = dcsc.findString,
-		getLabel = dcsc.getNumericLabel;
+		findString = common.findString,
+		getLabel = common.getNumericLabel;
 	
 	var calcTicks = function(min, max, kwArgs, majorTick, minorTick, microTick, span){
-		kwArgs = dojo.delegate(kwArgs);
+		kwArgs = lang.delegate(kwArgs);
 		if(!majorTick){
 			if(kwArgs.fixUpper == "major"){ kwArgs.fixUpper = "minor"; }
 			if(kwArgs.fixLower == "major"){ kwArgs.fixLower = "minor"; }
@@ -56,7 +55,7 @@ dojo.require("dojox.charting.scaler.common");
 			microPerMinor  = microTick ? Math.round(minorTick / microTick) : 0,
 			majorPrecision = majorTick ? Math.floor(Math.log(majorTick) / Math.LN10) : 0,
 			minorPrecision = minorTick ? Math.floor(Math.log(minorTick) / Math.LN10) : 0,
-			scale = span / (max - min);	
+			scale = span / (max - min);
 		if(!isFinite(scale)){ scale = 1; }
 		
 		return {
@@ -88,11 +87,11 @@ dojo.require("dojox.charting.scaler.common");
 			},
 			minorPerMajor:	minorPerMajor,
 			microPerMinor:	microPerMinor,
-			scaler:			dcs.linear
+			scaler:			linear
 		};
 	};
 	
-	dojo.mixin(dojox.charting.scaler.linear, {
+	return lang.mixin(linear, {
 		buildScaler: function(/*Number*/ min, /*Number*/ max, /*Number*/ span, /*Object*/ kwArgs){
 			var h = {fixUpper: "none", fixLower: "none", natural: false};
 			if(kwArgs){
@@ -128,7 +127,7 @@ dojo.require("dojox.charting.scaler.common");
 			}
 			
 			var mag = Math.floor(Math.log(max - min) / Math.LN10),
-				major = kwArgs && ("majorTickStep" in kwArgs) ? kwArgs.majorTickStep : Math.pow(10, mag), 
+				major = kwArgs && ("majorTickStep" in kwArgs) ? kwArgs.majorTickStep : Math.pow(10, mag),
 				minor = 0, micro = 0, ticks;
 				
 			// calculate minor ticks
@@ -184,8 +183,8 @@ dojo.require("dojox.charting.scaler.common");
 		},
 		buildTicks: function(/*Object*/ scaler, /*Object*/ kwArgs){
 			var step, next, tick,
-				nextMajor = scaler.major.start, 
-				nextMinor = scaler.minor.start, 
+				nextMajor = scaler.major.start,
+				nextMinor = scaler.minor.start,
 				nextMicro = scaler.micro.start;
 			if(kwArgs.microTicks && scaler.micro.tick){
 				step = scaler.micro.tick, next = nextMicro;
@@ -248,4 +247,4 @@ dojo.require("dojox.charting.scaler.common");
 			return function(x){ return x / scale + offset; };	// Function
 		}
 	});
-})();
+});

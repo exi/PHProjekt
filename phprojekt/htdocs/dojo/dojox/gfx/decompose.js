@@ -1,37 +1,33 @@
-dojo.provide("dojox.gfx.decompose");
-
-dojo.require("dojox.gfx.matrix");
-
-(function(){
-	var m = dojox.gfx.matrix;
-
-	var eq = function(/* Number */ a, /* Number */ b){
+define(["./_base", "dojo/_base/lang", "./matrix"], 
+  function (g, lang, m){
+	/*===== g = dojox.gfx =====*/
+	function eq(/* Number */ a, /* Number */ b){
 		// summary: compare two FP numbers for equality
 		return Math.abs(a - b) <= 1e-6 * (Math.abs(a) + Math.abs(b));	// Boolean
-	};
+	}
 
-	var calcFromValues = function(/* Number */ r1, /* Number */ m1, /* Number */ r2, /* Number */ m2){
+	function calcFromValues(/* Number */ r1, /* Number */ m1, /* Number */ r2, /* Number */ m2){
 		// summary: uses two close FP ration and their original magnitudes to approximate the result
 		if(!isFinite(r1)){
 			return r2;	// Number
 		}else if(!isFinite(r2)){
 			return r1;	// Number
 		}
-		m1 = Math.abs(m1), m2 = Math.abs(m2);
+		m1 = Math.abs(m1); m2 = Math.abs(m2);
 		return (m1 * r1 + m2 * r2) / (m1 + m2);	// Number
-	};
+	}
 
-	var transpose = function(/* dojox.gfx.matrix.Matrix2D */ matrix){
+	function transpose(/* dojox.gfx.matrix.Matrix2D */ matrix){
 		// matrix: dojox.gfx.matrix.Matrix2D: a 2D matrix-like object
 		var M = new m.Matrix2D(matrix);
-		return dojo.mixin(M, {dx: 0, dy: 0, xy: M.yx, yx: M.xy});	// dojox.gfx.matrix.Matrix2D
-	};
+		return lang.mixin(M, {dx: 0, dy: 0, xy: M.yx, yx: M.xy});	// dojox.gfx.matrix.Matrix2D
+	}
 
-	var scaleSign = function(/* dojox.gfx.matrix.Matrix2D */ matrix){
+	function scaleSign(/* dojox.gfx.matrix.Matrix2D */ matrix){
 		return (matrix.xx * matrix.yy < 0 || matrix.xy * matrix.yx > 0) ? -1 : 1;	// Number
-	};
+	}
 
-	var eigenvalueDecomposition = function(/* dojox.gfx.matrix.Matrix2D */ matrix){
+	function eigenvalueDecomposition(/* dojox.gfx.matrix.Matrix2D */ matrix){
 		// matrix: dojox.gfx.matrix.Matrix2D: a 2D matrix-like object
 		var M = m.normalize(matrix),
 			b = -M.xx - M.yy,
@@ -74,9 +70,9 @@ dojo.require("dojox.gfx.matrix");
 			vector1: {x: vx1, y: vy1},
 			vector2: {x: vx2, y: vy2}
 		};
-	};
+	}
 
-	var decomposeSR = function(/* dojox.gfx.matrix.Matrix2D */ M, /* Object */ result){
+	function decomposeSR(/* dojox.gfx.matrix.Matrix2D */ M, /* Object */ result){
 		// summary: decomposes a matrix into [scale, rotate]; no checks are done.
 		var sign = scaleSign(M),
 			a = result.angle1 = (Math.atan2(M.yx, M.yy) + Math.atan2(-sign * M.xy, sign * M.xx)) / 2,
@@ -84,9 +80,9 @@ dojo.require("dojox.gfx.matrix");
 		result.sx = calcFromValues(M.xx / cos, cos, -M.xy / sin, sin);
 		result.sy = calcFromValues(M.yy / cos, cos,  M.yx / sin, sin);
 		return result;	// Object
-	};
+	}
 
-	var decomposeRS = function(/* dojox.gfx.matrix.Matrix2D */ M, /* Object */ result){
+	function decomposeRS(/* dojox.gfx.matrix.Matrix2D */ M, /* Object */ result){
 		// summary: decomposes a matrix into [rotate, scale]; no checks are done
 		var sign = scaleSign(M),
 			a = result.angle2 = (Math.atan2(sign * M.yx, sign * M.xx) + Math.atan2(-M.xy, M.yy)) / 2,
@@ -94,11 +90,11 @@ dojo.require("dojox.gfx.matrix");
 		result.sx = calcFromValues(M.xx / cos, cos,  M.yx / sin, sin);
 		result.sy = calcFromValues(M.yy / cos, cos, -M.xy / sin, sin);
 		return result;	// Object
-	};
+	}
 
-	dojox.gfx.decompose = function(matrix){
-		// summary: decompose a 2D matrix into translation, scaling, and rotation components
-		// description: this function decompose a matrix into four logical components:
+	return g.decompose = function(matrix){
+		// summary: Decompose a 2D matrix into translation, scaling, and rotation components.
+		// description: This function decompose a matrix into four logical components:
 		//	translation, rotation, scaling, and one more rotation using SVD.
 		//	The components should be applied in following order:
 		//	| [translate, rotate(angle2), scale, rotate(angle1)]
@@ -107,7 +103,7 @@ dojo.require("dojox.gfx.matrix");
 			result = {dx: M.dx, dy: M.dy, sx: 1, sy: 1, angle1: 0, angle2: 0};
 		// detect case: [scale]
 		if(eq(M.xy, 0) && eq(M.yx, 0)){
-			return dojo.mixin(result, {sx: M.xx, sy: M.yy});	// Object
+			return lang.mixin(result, {sx: M.xx, sy: M.yy});	// Object
 		}
 		// detect case: [scale, rotate]
 		if(eq(M.xx * M.yx, -M.xy * M.yy)){
@@ -130,6 +126,6 @@ dojo.require("dojox.gfx.matrix");
 		decomposeRS(U, result);
 		S.xx *= result.sx;
 		S.yy *= result.sy;
-		return dojo.mixin(result, {sx: S.xx, sy: S.yy});	// Object
+		return lang.mixin(result, {sx: S.xx, sy: S.yy});	// Object
 	};
-})();
+});

@@ -1,7 +1,9 @@
-dojo.provide("dojox.data.AndOrWriteStore");
-dojo.require("dojox.data.AndOrReadStore");
+define(["dojo/_base/declare","dojo/_base/lang","dojo/_base/array", "dojo/_base/json", "dojo/date/stamp",
+		"dojo/_base/window", "./AndOrReadStore"], 
+  function(declare, lang, arrayUtil, json, dateStamp, winUtil, AndOrReadStore) {
+/*===== var AndOrReadStore = dojox.data.AndOrReadStore; =====*/
 
-dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
+return declare("dojox.data.AndOrWriteStore", AndOrReadStore, {
 	constructor: function(/* object */ keywordParameters){
 		//	keywordParameters: {typeMap: object)
 		//		The structure of the typeMap object is as follows:
@@ -11,7 +13,7 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 		//			...
 		//			typeN: function || object
 		//		}
-		//		Where if it is a function, it is assumed to be an object constructor that takes the 
+		//		Where if it is a function, it is assumed to be an object constructor that takes the
 		//		value of _value as the initialization parameters.  It is serialized assuming object.toString()
 		//		serialization.  If it is an object, then it is assumed
 		//		to be an object of general form:
@@ -28,14 +30,14 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 		
 		// For keeping track of changes so that we can implement isDirty and revert
 		this._pending = {
-			_newItems:{}, 
-			_modifiedItems:{}, 
+			_newItems:{},
+			_modifiedItems:{},
 			_deletedItems:{}
 		};
 
 		if(!this._datatypeMap['Date'].serialize){
 			this._datatypeMap['Date'].serialize = function(obj){
-				return dojo.date.stamp.toISOString(obj, {zulu:true});
+				return dateStamp.toISOString(obj, {zulu:true});
 			};
 		}
 		//Disable only if explicitly set to false.
@@ -87,13 +89,13 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 			if(typeof newIdentity === "undefined"){
 				throw new Error("newItem() was not passed an identity for the new item");
 			}
-			if(dojo.isArray(newIdentity)){
+			if(lang.isArray(newIdentity)){
 				throw new Error("newItem() was not passed an single-valued identity");
 			}
 		}
 		
-		// make sure this identity is not already in use by another item, if identifiers were 
-		// defined in the file.  Otherwise it would be the item count, 
+		// make sure this identity is not already in use by another item, if identifiers were
+		// defined in the file.  Otherwise it would be the item count,
 		// which should always be unique in this case.
 		if(this._itemsByIdentity){
 			this._assert(typeof this._itemsByIdentity[newIdentity] === "undefined");
@@ -102,7 +104,7 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 		this._assert(typeof this._pending._deletedItems[newIdentity] === "undefined");
 		
 		var newItem = {};
-		newItem[this._storeRefPropName] = this;		
+		newItem[this._storeRefPropName] = this;
 		newItem[this._itemNumPropName] = this._arrayOfAllItems.length;
 		if(this._itemsByIdentity){
 			this._itemsByIdentity[newIdentity] = newItem;
@@ -155,19 +157,19 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 				// Bummer, the user is trying to do something like
 				// newItem({_S:"foo"}).  Unfortunately, our superclass,
 				// ItemFileReadStore, is already using _S in each of our items
-				// to hold private info.  To avoid a naming collision, we 
-				// need to move all our private info to some other property 
+				// to hold private info.  To avoid a naming collision, we
+				// need to move all our private info to some other property
 				// of all the items/objects.  So, we need to iterate over all
-				// the items and do something like: 
+				// the items and do something like:
 				//    item.__S = item._S;
 				//    item._S = undefined;
-				// But first we have to make sure the new "__S" variable is 
-				// not in use, which means we have to iterate over all the 
+				// But first we have to make sure the new "__S" variable is
+				// not in use, which means we have to iterate over all the
 				// items checking for that.
 				throw new Error("encountered bug in ItemFileWriteStore.newItem");
 			}
 			var value = keywordArgs[key];
-			if(!dojo.isArray(value)){
+			if(!lang.isArray(value)){
 				value = [value];
 			}
 			newItem[key] = value;
@@ -185,7 +187,7 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 	},
 	
 	_removeArrayElement: function(/* Array */ array, /* anything */ element){
-		var index = dojo.indexOf(array, element);
+		var index = arrayUtil.indexOf(array, element);
 		if(index != -1){
 			array.splice(index, 1);
 			return true;
@@ -199,31 +201,31 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 		this._assertIsItem(item);
 
 		// Remove this item from the _arrayOfAllItems, but leave a null value in place
-		// of the item, so as not to change the length of the array, so that in newItem() 
+		// of the item, so as not to change the length of the array, so that in newItem()
 		// we can still safely do: newIdentity = this._arrayOfAllItems.length;
 		var indexInArrayOfAllItems = item[this._itemNumPropName];
 		var identity = this.getIdentity(item);
 
 		//If we have reference integrity on, we need to do reference cleanup for the deleted item
 		if(this.referenceIntegrity){
-			//First scan all the attributes of this items for references and clean them up in the map 
+			//First scan all the attributes of this items for references and clean them up in the map
 			//As this item is going away, no need to track its references anymore.
 
-			//Get the attributes list before we generate the backup so it 
+			//Get the attributes list before we generate the backup so it
 			//doesn't pollute the attributes list.
 			var attributes = this.getAttributes(item);
 
 			//Backup the map, we'll have to restore it potentially, in a revert.
 			if(item[this._reverseRefMap]){
-				item["backup_" + this._reverseRefMap] = dojo.clone(item[this._reverseRefMap]);
+				item["backup_" + this._reverseRefMap] = lang.clone(item[this._reverseRefMap]);
 			}
 			
 			//TODO:  This causes a reversion problem.  This list won't be restored on revert since it is
 			//attached to the 'value'. item, not ours.  Need to back tese up somehow too.
 			//Maybe build a map of the backup of the entries and attach it to the deleted item to be restored
 			//later.  Or just record them and call _addReferenceToMap on them in revert.
-			dojo.forEach(attributes, function(attribute){
-				dojo.forEach(this.getValues(item, attribute), function(value){
+			arrayUtil.forEach(attributes, function(attribute){
+				arrayUtil.forEach(this.getValues(item, attribute), function(value){
 					if(this.isItem(value)){
 						//We have to back up all the references we had to others so they can be restored on a revert.
 						if(!item["backupRefs_" + this._reverseRefMap]){
@@ -251,11 +253,11 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 					if(containingItem){
 						for(var attribute in references[itemId]){
 							var oldValues = this.getValues(containingItem, attribute) || [];
-							var newValues = dojo.filter(oldValues, function(possibleItem){
+							var newValues = arrayUtil.filter(oldValues, function(possibleItem){
 								return !(this.isItem(possibleItem) && this.getIdentity(possibleItem) == identity);
 							}, this);
 							//Remove the note of the reference to the item and set the values on the modified attribute.
-							this._removeReferenceFromMap(item, containingItem, attribute); 
+							this._removeReferenceFromMap(item, containingItem, attribute);
 							if(newValues.length < oldValues.length){
 								this._setValueOrValues(containingItem, attribute, newValues);
 							}
@@ -301,7 +303,7 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 		
 		// Check for valid arguments
 		this._assertIsItem(item);
-		this._assert(dojo.isString(attribute));
+		this._assert(lang.isString(attribute));
 		this._assert(typeof newValueOrValues !== "undefined");
 
 		// Make sure the user isn't trying to change the item's identity
@@ -317,17 +319,17 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 
 		var identity = this.getIdentity(item);
 		if(!this._pending._modifiedItems[identity]){
-			// Before we actually change the item, we make a copy of it to 
-			// record the original state, so that we'll be able to revert if 
+			// Before we actually change the item, we make a copy of it to
+			// record the original state, so that we'll be able to revert if
 			// the revert method gets called.  If the item has already been
 			// modified then there's no need to do this now, since we already
-			// have a record of the original state.						
+			// have a record of the original state.
 			var copyOfItemState = {};
 			for(var key in item){
 				if((key === this._storeRefPropName) || (key === this._itemNumPropName) || (key === this._rootItemPropName)){
 					copyOfItemState[key] = item[key];
 				}else if(key === this._reverseRefMap){
-					copyOfItemState[key] = dojo.clone(item[key]);
+					copyOfItemState[key] = lang.clone(item[key]);
 				}else{
 					copyOfItemState[key] = item[key].slice(0, item[key].length);
 				}
@@ -339,17 +341,17 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 		// Okay, now we can actually change this attribute on the item
 		var success = false;
 		
-		if(dojo.isArray(newValueOrValues) && newValueOrValues.length === 0){
+		if(lang.isArray(newValueOrValues) && newValueOrValues.length === 0){
 			
 			// If we were passed an empty array as the value, that counts
-			// as "unsetting" the attribute, so we need to remove this 
+			// as "unsetting" the attribute, so we need to remove this
 			// attribute from the item.
 			success = delete item[attribute];
 			newValueOrValues = undefined; // used in the onSet Notification call below
 
 			if(this.referenceIntegrity && oldValueOrValues){
 				var oldValues = oldValueOrValues;
-				if(!dojo.isArray(oldValues)){
+				if(!lang.isArray(oldValues)){
 					oldValues = [oldValues];
 				}
 				for(var i = 0; i < oldValues.length; i++){
@@ -361,12 +363,12 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 			}
 		}else{
 			var newValueArray;
-			if(dojo.isArray(newValueOrValues)){
+			if(lang.isArray(newValueOrValues)){
 				var newValues = newValueOrValues;
 				// Unfortunately, it's not safe to just do this:
 				//    newValueArray = newValues;
 				// Instead, we need to copy the array, which slice() does very nicely.
-				// This is so that our internal data structure won't  
+				// This is so that our internal data structure won't
 				// get corrupted if the user mucks with the values array *after*
 				// calling setValues().
 				newValueArray = newValueOrValues.slice(0, newValueOrValues.length);
@@ -374,13 +376,13 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 				newValueArray = [newValueOrValues];
 			}
 
-			//We need to handle reference integrity if this is on. 
+			//We need to handle reference integrity if this is on.
 			//In the case of set, we need to see if references were added or removed
 			//and update the reference tracking map accordingly.
 			if(this.referenceIntegrity){
 				if(oldValueOrValues){
 					var oldValues = oldValueOrValues;
-					if(!dojo.isArray(oldValues)){
+					if(!lang.isArray(oldValues)){
 						oldValues = [oldValues];
 					}
 					//Use an associative map to determine what was added/removed from the list.
@@ -389,19 +391,19 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 					//Then we pass over the map and any references left it it need to be removed (IE, no match in
 					//the new values list).
 					var map = {};
-					dojo.forEach(oldValues, function(possibleItem){
+					arrayUtil.forEach(oldValues, function(possibleItem){
 						if(this.isItem(possibleItem)){
 							var id = this.getIdentity(possibleItem);
 							map[id.toString()] = true;
 						}
 					}, this);
-					dojo.forEach(newValueArray, function(possibleItem){
+					arrayUtil.forEach(newValueArray, function(possibleItem){
 						if(this.isItem(possibleItem)){
 							var id = this.getIdentity(possibleItem);
 							if(map[id.toString()]){
 								delete map[id.toString()];
 							}else{
-								this._addReferenceToMap(possibleItem, item, attribute); 
+								this._addReferenceToMap(possibleItem, item, attribute);
 							}
 						}
 					}, this);
@@ -431,7 +433,7 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 
 		// Now we make the dojo.data.api.Notification call
 		if(callOnSet){
-			this.onSet(item, attribute, oldValueOrValues, newValueOrValues); 
+			this.onSet(item, attribute, oldValueOrValues, newValueOrValues);
 		}
 		return success; // boolean
 	},
@@ -466,7 +468,7 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 		//		Method to remove an reference map entry for an item and attribute.
 		//	description:
 		//		Method to remove an reference map entry for an item and attribute.  This will
-		//		also perform cleanup on the map such that if there are no more references at all to 
+		//		also perform cleanup on the map such that if there are no more references at all to
 		//		the item, its reference object and entry are removed.
 		//
 		//	refItem:
@@ -502,7 +504,7 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 		for(i = 0; i < this._arrayOfAllItems.length; i++){
 			var item = this._arrayOfAllItems[i];
 			if(item && item[this._reverseRefMap]){
-				console.log("Item: [" + this.getIdentity(item) + "] is referenced by: " + dojo.toJson(item[this._reverseRefMap]));
+				console.log("Item: [" + this.getIdentity(item) + "] is referenced by: " + json.toJson(item[this._reverseRefMap]));
 			}
 		}
 	},
@@ -523,7 +525,7 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 	_flatten: function(/* anything */ value){
 		if(this.isItem(value)){
 			var item = value;
-			// Given an item, return an serializable object that provides a 
+			// Given an item, return an serializable object that provides a
 			// reference to the item.
 			// For example, given kermit:
 			//    var kermit = store.newItem({id:2, name:"Kermit"});
@@ -536,7 +538,7 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 			if(typeof value === "object"){
 				for(var type in this._datatypeMap){
 					var typeMap = this._datatypeMap[type];
-					if(dojo.isObject(typeMap) && !dojo.isFunction(typeMap)){
+					if(lang.isObject(typeMap) && !lang.isFunction(typeMap)){
 						if(value instanceof typeMap.type){
 							if(!typeMap.serialize){
 								throw new Error("ItemFileWriteStore:  No serializer defined for type mapping: [" + type + "]");
@@ -554,7 +556,7 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 	},
 	
 	_getNewFileContentString: function(){
-		// summary: 
+		// summary:
 		//		Generate a string that can be saved to a file.
 		//		The result should look similar to:
 		//		http://trac.dojotoolkit.org/browser/dojo/trunk/tests/data/countries.json
@@ -591,22 +593,22 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 			}
 		}
 		var prettyPrint = true;
-		return dojo.toJson(serializableStructure, prettyPrint);
+		return json.toJson(serializableStructure, prettyPrint);
 	},
 
 	_isEmpty: function(something){
-		//	summary: 
+		//	summary:
 		//		Function to determine if an array or object has no properties or values.
 		//	something:
 		//		The array or object to examine.
 		var empty = true;
-		if(dojo.isObject(something)){
+		if(lang.isObject(something)){
 			var i;
 			for(i in something){
 				empty = false;
 				break;
 			}
-		}else if(dojo.isArray(something)){
+		}else if(lang.isArray(something)){
 			if(something.length > 0){
 				empty = false;
 			}
@@ -624,21 +626,21 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 		var self = this;
 		var saveCompleteCallback = function(){
 			self._pending = {
-				_newItems:{}, 
+				_newItems:{},
 				_modifiedItems:{},
 				_deletedItems:{}
 			};
 
 			self._saveInProgress = false; // must come after this._pending is cleared, but before any callbacks
 			if(keywordArgs && keywordArgs.onComplete){
-				var scope = keywordArgs.scope || dojo.global;
+				var scope = keywordArgs.scope || winUtil.global;
 				keywordArgs.onComplete.call(scope);
 			}
 		};
 		var saveFailedCallback = function(){
 			self._saveInProgress = false;
 			if(keywordArgs && keywordArgs.onError){
-				var scope = keywordArgs.scope || dojo.global;
+				var scope = keywordArgs.scope || winUtil.global;
 				keywordArgs.onError.call(scope);
 			}
 		};
@@ -673,13 +675,13 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 				modifiedItem = this._arrayOfAllItems[identity];
 			}
 	
-			// Restore the original item into a full-fledged item again, we want to try to 
+			// Restore the original item into a full-fledged item again, we want to try to
 			// keep the same object instance as if we don't it, causes bugs like #9022.
 			copyOfItemState[this._storeRefPropName] = this;
 			for(key in modifiedItem){
 				delete modifiedItem[key];
 			}
-			dojo.mixin(modifiedItem, copyOfItemState);
+			lang.mixin(modifiedItem, copyOfItemState);
 		}
 		var deletedItem;
 		for(identity in this._pending._deletedItems){
@@ -705,7 +707,7 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 		for(identity in this._pending._deletedItems){
 			deletedItem = this._pending._deletedItems[identity];
 			if(deletedItem["backupRefs_" + this._reverseRefMap]){
-				dojo.forEach(deletedItem["backupRefs_" + this._reverseRefMap], function(reference){
+				arrayUtil.forEach(deletedItem["backupRefs_" + this._reverseRefMap], function(reference){
 					var refItem;
 					if(this._itemsByIdentity){
 						refItem = this._itemsByIdentity[reference.id];
@@ -714,7 +716,7 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 					}
 					this._addReferenceToMap(refItem, deletedItem, reference.attr);
 				}, this);
-				delete deletedItem["backupRefs_" + this._reverseRefMap]; 
+				delete deletedItem["backupRefs_" + this._reverseRefMap];
 			}
 		}
 		
@@ -733,8 +735,8 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 		}
 
 		this._pending = {
-			_newItems:{}, 
-			_modifiedItems:{}, 
+			_newItems:{},
+			_modifiedItems:{},
 			_deletedItems:{}
 		};
 		return true; // boolean
@@ -745,13 +747,13 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 		if(item){
 			// return true if the item is dirty
 			var identity = this.getIdentity(item);
-			return new Boolean(this._pending._newItems[identity] || 
+			return new Boolean(this._pending._newItems[identity] ||
 				this._pending._modifiedItems[identity] ||
 				this._pending._deletedItems[identity]).valueOf(); // boolean
 		}else{
 			// return true if the store is dirty -- which means return true
 			// if there are any new items, dirty items, or modified items
-			if(!this._isEmpty(this._pending._newItems) || 
+			if(!this._isEmpty(this._pending._newItems) ||
 				!this._isEmpty(this._pending._modifiedItems) ||
 				!this._isEmpty(this._pending._deletedItems)){
 				return true;
@@ -762,28 +764,28 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 
 /* dojo.data.api.Notification */
 
-	onSet: function(/* item */ item, 
-					/*attribute-name-string*/ attribute, 
+	onSet: function(/* item */ item,
+					/*attribute-name-string*/ attribute,
 					/*object | array*/ oldValue,
 					/*object | array*/ newValue){
 		// summary: See dojo.data.api.Notification.onSet()
 		
-		// No need to do anything. This method is here just so that the 
+		// No need to do anything. This method is here just so that the
 		// client code can connect observers to it.
 	},
 
 	onNew: function(/* item */ newItem, /*object?*/ parentInfo){
 		// summary: See dojo.data.api.Notification.onNew()
 		
-		// No need to do anything. This method is here just so that the 
-		// client code can connect observers to it. 
+		// No need to do anything. This method is here just so that the
+		// client code can connect observers to it.
 	},
 
 	onDelete: function(/* item */ deletedItem){
 		// summary: See dojo.data.api.Notification.onDelete()
 		
-		// No need to do anything. This method is here just so that the 
-		// client code can connect observers to it. 
+		// No need to do anything. This method is here just so that the
+		// client code can connect observers to it.
 	},
 
 	close: function(/* object? */ request){
@@ -804,4 +806,6 @@ dojo.declare("dojox.data.AndOrWriteStore", dojox.data.AndOrReadStore, {
 			}
 		}
 	}
+});
+
 });

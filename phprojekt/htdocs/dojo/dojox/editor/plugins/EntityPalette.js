@@ -1,16 +1,20 @@
-dojo.provide("dojox.editor.plugins.EntityPalette");
-
-dojo.require("dijit._Widget");
-dojo.require("dijit._Templated");
-dojo.require("dijit._PaletteMixin");
-dojo.require("dojo.i18n");
-
-dojo.requireLocalization("dojox.editor.plugins", "latinEntities");
+define([
+	"dojo",
+	"dijit",
+	"dojox",
+	"dijit/_Widget",
+	"dijit/_TemplatedMixin",
+	"dijit/_PaletteMixin",
+	"dojo/_base/connect",
+	"dojo/_base/declare",
+	"dojo/i18n",
+	"dojo/i18n!dojox/editor/plugins/nls/latinEntities"
+], function(dojo, dijit, dojox) {
 
 dojo.experimental("dojox.editor.plugins.EntityPalette");
 
 dojo.declare("dojox.editor.plugins.EntityPalette",
-	[dijit._Widget, dijit._Templated, dijit._PaletteMixin],
+	[dijit._Widget, dijit._TemplatedMixin, dijit._PaletteMixin],
 	{
 	// summary:
 	//		A keyboard accessible HTML entity-picking widget (for inserting symbol characters)
@@ -220,4 +224,8 @@ dojo.declare("dojox.editor.plugins.LatinEntity",
 			// Deal with entities that have keys which are reserved words.
 			cell.innerHTML = this.getValue();
 		}
+});
+
+return dojox.editor.plugins.EntityPalette;
+
 });

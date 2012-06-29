@@ -1,6 +1,10 @@
-dojo.provide("dojo.AdapterRegistry");
+define(["./_base/kernel", "./_base/lang"], function(dojo, lang) {
+	// module:
+	//		dojo/AdapterRegistry
+	// summary:
+	//		TODOC
 
-dojo.AdapterRegistry = function(/*Boolean?*/ returnWrappers){
+var AdapterRegistry = dojo.AdapterRegistry = function(/*Boolean?*/ returnWrappers){
 	//	summary:
 	//		A registry to make contextual calling/searching easier.
 	//	description:
@@ -31,11 +35,16 @@ dojo.AdapterRegistry = function(/*Boolean?*/ returnWrappers){
 
 	this.pairs = [];
 	this.returnWrappers = returnWrappers || false; // Boolean
-}
+};
 
-dojo.extend(dojo.AdapterRegistry, {
+/*=====
+// doc alias helpers:
+AdapterRegistry = dojo.AdapterRegistry;
+=====*/
+
+lang.extend(AdapterRegistry, {
 	register: function(/*String*/ name, /*Function*/ check, /*Function*/ wrap, /*Boolean?*/ directReturn, /*Boolean?*/ override){
-		//	summary: 
+		//	summary:
 		//		register a check function to determine if the wrap function or
 		//		object gets selected
 		//	name:
@@ -78,8 +87,14 @@ dojo.extend(dojo.AdapterRegistry, {
 	},
 
 	unregister: function(name){
-		// summary: Remove a named adapter from the registry
-
+		// summary:
+		//		Remove a named adapter from the registry
+		// name: String
+		//		The name of the adapter.
+		// returns: Boolean
+		//		Returns true if operation is successful.
+		//		Returns false if operation fails.
+	
 		// FIXME: this is kind of a dumb way to handle this. On a large
 		// registry this will be slow-ish and we can use the name as a lookup
 		// should we choose to trade memory for speed.
@@ -92,4 +107,7 @@ dojo.extend(dojo.AdapterRegistry, {
 		}
 		return false;
 	}
+});
+
+return AdapterRegistry;
 });

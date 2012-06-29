@@ -1,8 +1,4 @@
-dojo.provide("dojox.sketch.UnderlineAnnotation");
-dojo.require("dojox.sketch.Annotation");
-dojo.require("dojox.sketch.Anchor");
-
-(function(){
+define(["./Annotation", "./Anchor"], function(){
 	var ta=dojox.sketch;
 	ta.UnderlineAnnotation=function(figure, id){
 		ta.Annotation.call(this, figure, id);
@@ -64,9 +60,9 @@ dojo.require("dojox.sketch.Anchor");
 		//if(this.transform.dx || this.transform.dy){ this.shape.setTransform(this.transform); }
 
 		this.labelShape=this.shape.createText({
-				x:0, 
-				y:0, 
-				text:this.property('label'), 
+				x:0,
+				y:0,
+				text:this.property('label'),
 				decoration:"underline",
 				align:"start"
 			})
@@ -74,11 +70,11 @@ dojo.require("dojox.sketch.Anchor");
 			//.setFill(this.property('fill'));
 		this.labelShape.getEventSource().setAttribute('id',this.id+"-labelShape");
 
-		this.lineShape=this.shape.createLine({ 
-				x1:1, 
-				x2:this.labelShape.getTextWidth(), 
-				y1:2, 
-				y2:2 
+		this.lineShape=this.shape.createLine({
+				x1:1,
+				x2:this.labelShape.getTextWidth(),
+				y1:2,
+				y2:2
 			})
 			//.setStroke({ color:this.property('fill'), width:1 });
 		this.lineShape.getEventSource().setAttribute("shape-rendering","crispEdges");
@@ -144,4 +140,5 @@ dojo.require("dojox.sketch.Anchor");
 		onMouseMove: function(){}
 	});
 	ta.Annotation.register("Underline", ta.UnderlineAnnotationTool);
-})();
+	return dojox.sketch.UnderlineAnnotation;
+});

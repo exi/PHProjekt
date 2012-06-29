@@ -19,18 +19,19 @@
 		<!-- required: dojo.js -->
 		<script type="text/javascript" src="../../../dojo/dojo.js"
 			djConfig="parseOnLoad: true, isDebug: true"></script>
-		<script type="text/javascript" src="../BusyButton.js"></script>
 		<script type="text/javascript">
+			dojo.require("dojox.form.BusyButton");
+			dojo.require("dojo.parser");
 			dojo.require("dijit.Menu");
 			dojo.addOnLoad(function(){
 				dojo.connect(dijit.byId("buttonCancel"), "onClick", function(){
 					dijit.byId("button_noTimeout").cancel();
 				});
 				dojo.connect(dijit.byId("buttonCancel2"), "onClick", function(){
-					dijit.byId("button_noTimeout2").attr("label", "Chargeback failed...", 1000);
+					dijit.byId("button_noTimeout2").set("label", "Chargeback failed...", 1000);
 				});
 				dojo.connect(dijit.byId("button_noTimeout3"), "_onClick", function(){
-					dijit.byId("button_noTimeout3").attr("label", "Creating account...");
+					dijit.byId("button_noTimeout3").set("label", "Creating account...");
 					dijit.byId("button_noTimeout3").resetTimeout();
 				});
 			});
@@ -46,7 +47,12 @@
 		<h1 class="testTitle">Test: dojox.form.BusyButton</h1>
 		<p>
 		Normal busy button, 5000 miliseconds timeout<br />
-		<button dojoType="dojox.form.BusyButton" timeout="5000" >Click</button>
+		<button dojoType="dojox.form.BusyButton" timeout="5000" >
+			<script type="dojo/connect" data-dojo-event="onClick" data-dojo-args="evt">
+				console.log("dojox.form.BusyButton clicked");
+			</script>
+			Click
+		</button>
 		</p>
 	
 		<p>
@@ -101,4 +107,4 @@
 			</button>
 		</p>
 	</body>
-</hmtl>
+</html>

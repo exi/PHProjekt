@@ -1,7 +1,6 @@
-dojo.provide("tests._base.lang");
+define(["dojo", "doh"], function(dojo, doh){
 
-tests.register("tests._base.lang", 
-	[
+  doh.register("tests._base.lang", [
 		function mixin(t){
 			t.assertEqual("object", typeof dojo.mixin());
 			t.assertEqual("object", typeof dojo.mixin(undefined));
@@ -173,13 +172,13 @@ tests.register("tests._base.lang",
 			}
 		},
 		
-		function clone(t) { 
+		function clone(t) {
 			var obj1 = {
 				foo: 'bar',
 				answer: 42,
-				jan102007: new Date(2007, 0, 10), 
+				jan102007: new Date(2007, 0, 10),
 				baz: {
-					a: null, 
+					a: null,
 					b: [1, "b", 2.3, true, false],
 					c: {
 						d: undefined,
@@ -189,7 +188,7 @@ tests.register("tests._base.lang",
 					}
 				},
 				toString: function(){ return "meow"; }
-			}; 
+			};
 			var obj2 = dojo.clone(obj1);
 			t.assertEqual(obj1.foo, obj2.foo);
 			t.assertEqual(obj1.answer, obj2.answer);
@@ -276,4 +275,5 @@ tests.register("tests._base.lang",
 			t.is("Hello, Robert Cringely!", s4);
 		}
 	]
-);
+  );
+});

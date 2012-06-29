@@ -1,5 +1,5 @@
-dojo.provide("dojox.data.dom");
-dojo.require("dojox.xml.parser");
+define(["dojo/_base/kernel", "dojo/_base/lang", "dojox/xml/parser"], 
+  function(kernel, lang, xmlParser) {
 
 //DOM type to int value for reference.
 //Ints make for more compact code than full constant names.
@@ -20,30 +20,32 @@ dojo.require("dojox.xml.parser");
 //a better project, dojox.xml and experimental has been removed there.  Please update usage to the new package.
 dojo.deprecated("dojox.data.dom", "Use dojox.xml.parser instead.", "2.0");
 
-dojox.data.dom.createDocument = function(/*string?*/ str, /*string?*/ mimetype){
+var dataDom = lang.getObject("dojox.data.dom",true);
+
+dataDom.createDocument = function(/*string?*/ str, /*string?*/ mimetype){
 	//	summary:
 	//		cross-browser implementation of creating an XML document object.
 	//
 	//	str:
-	//		Optional text to create the document from.  If not provided, an empty XML document will be created.  
+	//		Optional text to create the document from.  If not provided, an empty XML document will be created.
 	//		If str is empty string "", then a new empty document will be created.
 	//	mimetype:
 	//		Optional mimetype of the text.  Typically, this is text/xml.  Will be defaulted to text/xml if not provided.
 	dojo.deprecated("dojox.data.dom.createDocument()", "Use dojox.xml.parser.parse() instead.", "2.0");
 	try{
-		return dojox.xml.parser.parse(str,mimetype); //DOMDocument.
+		return xmlParser.parse(str,mimetype); //DOMDocument.
 	}catch(e){
 		/*Squeltch errors like the old parser did.*/
 		return null;
 	}
 };
 
-dojox.data.dom.textContent = function(/*Node*/node, /*string?*/text){
+dataDom.textContent = function(/*Node*/node, /*string?*/text){
 	//	summary:
 	//		Implementation of the DOM Level 3 attribute; scan node for text
 	//	description:
 	//		Implementation of the DOM Level 3 attribute; scan node for text
-	//		This function can also update the text of a node by replacing all child 
+	//		This function can also update the text of a node by replacing all child
 	//		content of the node.
 	//	node:
 	//		The node to get the text off of or set the text on.
@@ -51,13 +53,13 @@ dojox.data.dom.textContent = function(/*Node*/node, /*string?*/text){
 	//		Optional argument of the text to apply to the node.
 	dojo.deprecated("dojox.data.dom.textContent()", "Use dojox.xml.parser.textContent() instead.", "2.0");
 	if(arguments.length> 1){
-		return dojox.xml.parser.textContent(node, text); //string
+		return xmlParser.textContent(node, text); //string
 	}else{
-		return dojox.xml.parser.textContent(node); //string
+		return xmlParser.textContent(node); //string
 	}
 };
 
-dojox.data.dom.replaceChildren = function(/*Element*/node, /*Node || array*/ newChildren){
+dataDom.replaceChildren = function(/*Element*/node, /*Node || array*/ newChildren){
 	//	summary:
 	//		Removes all children of node and appends newChild. All the existing
 	//		children will be destroyed.
@@ -70,10 +72,10 @@ dojox.data.dom.replaceChildren = function(/*Element*/node, /*Node || array*/ new
 	//		The children to add to the node.  It can either be a single Node or an
 	//		array of Nodes.
 	dojo.deprecated("dojox.data.dom.replaceChildren()", "Use dojox.xml.parser.replaceChildren() instead.", "2.0");
-	dojox.xml.parser.replaceChildren(node, newChildren);
+	xmlParser.replaceChildren(node, newChildren);
 };
 
-dojox.data.dom.removeChildren = function(/*Element*/node){
+dataDom.removeChildren = function(/*Element*/node){
 	//	summary:
 	//		removes all children from node and returns the count of children removed.
 	//		The children nodes are not destroyed. Be sure to call dojo._destroyElement on them
@@ -84,12 +86,16 @@ dojox.data.dom.removeChildren = function(/*Element*/node){
 	return dojox.xml.parser.removeChildren(node); //int
 };
 
-dojox.data.dom.innerXML = function(/*Node*/node){
+dataDom.innerXML = function(/*Node*/node){
 	//	summary:
 	//		Implementation of MS's innerXML function.
 	//	node:
 	//		The node from which to generate the XML text representation.
 	dojo.deprecated("dojox.data.dom.innerXML()", "Use dojox.xml.parser.innerXML() instead.", "2.0");
-	return dojox.xml.parser.innerXML(node); //string||null
+	return xmlParser.innerXML(node); //string||null
 };
+
+return dataDom;
+
+});
 

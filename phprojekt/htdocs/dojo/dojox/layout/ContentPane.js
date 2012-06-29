@@ -1,9 +1,13 @@
-dojo.provide("dojox.layout.ContentPane");
+define([
+	"dojo/_base/lang",
+	"dojo/_base/xhr",
+	"dijit/layout/ContentPane",
+	"dojox/html/_base",
+	"dojo/_base/declare"
+], function (lang, xhrUtil, ContentPane, htmlUtil, declare) {
 
-dojo.require("dijit.layout.ContentPane");
-dojo.require("dojox.html._base"); 
-
-dojo.declare("dojox.layout.ContentPane", dijit.layout.ContentPane, {
+/*===== var ContentPane = dijit.layout.ContentPane =====*/
+return declare("dojox.layout.ContentPane", ContentPane, {
 	// summary:
 	//		An extended version of dijit.layout.ContentPane.
 	//		Supports infile scripts and external ones declared by <script src=''
@@ -24,7 +28,7 @@ dojo.declare("dojox.layout.ContentPane", dijit.layout.ContentPane, {
 	//		cleans content to make it less likely to generate DOM/JS errors.
 	//	description:
 	//		useful if you send ContentPane a complete page, instead of a html fragment
-	//		scans for 
+	//		scans for
 	//
 	//			* title Node, remove
 	//			* DOCTYPE tag, remove
@@ -43,38 +47,28 @@ dojo.declare("dojox.layout.ContentPane", dijit.layout.ContentPane, {
 	// NOTE this name might change in the near future
 	scriptHasHooks: false,
 
-	/*======
-	// ioMethod: dojo.xhrGet|dojo.xhrPost
-	//		reference to the method that should grab the content
-	ioMethod: dojo.xhrGet,
-	
-	// ioArgs: Object
-	//		makes it possible to add custom args to xhrGet, like ioArgs.headers['X-myHeader'] = 'true'
-	ioArgs: {},
-	======*/
-
 	constructor: function(){
 		// init per instance properties, initializer doesn't work here because how things is hooked up in dijit._Widget
 		this.ioArgs = {};
-		this.ioMethod = dojo.xhrGet;
+		this.ioMethod = xhrUtil.get;
 	},
 
 	onExecError: function(e){
 		// summary:
 		//		event callback, called on script error or on java handler error
-		//		overide and return your own html string if you want a some text 
+		//		overide and return your own html string if you want a some text
 		//		displayed within the ContentPane
 	},
 
 	_setContent: function(cont){
 		// override dijit.layout.ContentPane._setContent, to enable path adjustments
 		
-		var setter = this._contentSetter; 
-		if(! (setter && setter instanceof dojox.html._ContentSetter)) {
-			setter = this._contentSetter = new dojox.html._ContentSetter({
+		var setter = this._contentSetter;
+		if(! (setter && setter instanceof htmlUtil._ContentSetter)) {
+			setter = this._contentSetter = new htmlUtil._ContentSetter({
 				node: this.containerNode,
-				_onError: dojo.hitch(this, this._onError),
-				onContentError: dojo.hitch(this, function(e){
+				_onError: lang.hitch(this, this._onError),
+				onContentError: lang.hitch(this, function(e){
 					// fires if a domfault occurs when we are appending this.errorMessage
 					// like for instance if domNode is a UL and we try append a DIV
 					var errMess = this.onContentError(e);
@@ -101,4 +95,5 @@ dojo.declare("dojox.layout.ContentPane", dijit.layout.ContentPane, {
 		this.inherited("_setContent", arguments);
 	}
 	// could put back _renderStyles by wrapping/aliasing dojox.html._ContentSetter.prototype._renderStyles
+});
 });

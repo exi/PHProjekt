@@ -1,9 +1,26 @@
-dojo.provide("dijit._PaletteMixin");
-dojo.require("dijit._CssStateMixin");
+define([
+	"dojo/_base/declare", // declare
+	"dojo/dom-attr", // domAttr.set
+	"dojo/dom-class", // domClass.add domClass.remove
+	"dojo/dom-construct", // domConstruct.create domConstruct.place
+	"dojo/_base/event", // event.stop
+	"dojo/keys", // keys
+	"dojo/_base/lang", // lang.getObject
+	"./_CssStateMixin",
+	"./focus",
+	"./typematic"
+], function(declare, domAttr, domClass, domConstruct, event, keys, lang, _CssStateMixin, focus, typematic){
 
-dojo.declare("dijit._PaletteMixin",
-	[dijit._CssStateMixin],
-	{
+/*=====
+	var _CssStateMixin = dijit._CssStateMixin;
+=====*/
+
+// module:
+//		dijit/_PaletteMixin
+// summary:
+//		A keyboard accessible palette, for picking a color/emoticon/etc.
+
+return declare("dijit._PaletteMixin", [_CssStateMixin], {
 	// summary:
 	//		A keyboard accessible palette, for picking a color/emoticon/etc.
 	// description:
@@ -21,29 +38,29 @@ dojo.declare("dijit._PaletteMixin",
 
 	// value: String
 	//		Currently selected color/emoticon/etc.
-	value: null,
-	
+	value: "",
+
 	// _selectedCell: [private] Integer
 	//		Index of the currently selected cell. Initially, none selected
 	_selectedCell: -1,
 
+/*=====
 	// _currentFocus: [private] DomNode
 	//		The currently focused cell (if the palette itself has focus), or otherwise
 	//		the cell to be focused when the palette itself gets focus.
 	//		Different from value, which represents the selected (i.e. clicked) cell.
-/*=====
 	_currentFocus: null,
 =====*/
 
+/*=====
 	// _xDim: [protected] Integer
 	//		This is the number of cells horizontally across.
-/*=====
 	_xDim: null,
 =====*/
 
+/*=====
 	// _yDim: [protected] Integer
 	//		This is the number of cells vertically down.
-/*=====
 	_yDim: null,
 =====*/
 
@@ -59,6 +76,20 @@ dojo.declare("dijit._PaletteMixin",
 	//	 Name of javascript class for Object created for each cell of the palette.
 	//	 dyeClass should implements dijit.Dye interface
 	dyeClass: '',
+	
+	// summary: String
+	//		Localized summary for the palette table
+	summary: '',
+	_setSummaryAttr: "paletteTableNode",
+
+	_dyeFactory: function(value /*===== , row, col =====*/){
+		// summary:
+		//		Return instance of dijit.Dye for specified cell of palette
+		// tags:
+		//		extension
+		var dyeClassObj = lang.getObject(this.dyeClass);
+		return new dyeClassObj(value);
+	},
 
 	_preparePalette: function(choices, titles) {
 		// summary:
@@ -71,29 +102,27 @@ dojo.declare("dijit._PaletteMixin",
 
 		this._cells = [];
 		var url = this._blankGif;
-		
-		var dyeClassObj = dojo.getObject(this.dyeClass);
+
+		this.connect(this.gridNode, "ondijitclick", "_onCellClick");
 
 		for(var row=0; row < choices.length; row++){
-			var rowNode = dojo.create("tr", {tabIndex: "-1"}, this.gridNode);
+			var rowNode = domConstruct.create("tr", {tabIndex: "-1"}, this.gridNode);
 			for(var col=0; col < choices[row].length; col++){
 				var value = choices[row][col];
 				if(value){
-					var cellObject = new dyeClassObj(value);
-					
-					var cellNode = dojo.create("td", {
+					var cellObject = this._dyeFactory(value, row, col);
+
+					var cellNode = domConstruct.create("td", {
 						"class": this.cellClass,
 						tabIndex: "-1",
-						title: titles[value]
+						title: titles[value],
+						role: "gridcell"
 					});
 
 					// prepare cell inner structure
 					cellObject.fillCell(cellNode, url);
 
-					this.connect(cellNode, "ondijitclick", "_onCellClick");
-					this._trackMouseState(cellNode, this.cellClass);
-
-					dojo.place(cellNode, rowNode);
+					domConstruct.place(cellNode, rowNode);
 
 					cellNode.index = this._cells.length;
 
@@ -121,9 +150,9 @@ dojo.declare("dijit._PaletteMixin",
 		};
 		for(var key in keyIncrementMap){
 			this._connects.push(
-				dijit.typematic.addKeyListener(
+				typematic.addKeyListener(
 					this.domNode,
-					{charOrCode:dojo.keys[key], ctrlKey:false, altKey:false, shiftKey:false},
+					{charOrCode:keys[key], ctrlKey:false, altKey:false, shiftKey:false},
 					this,
 					function(){
 						var increment = keyIncrementMap[key];
@@ -148,7 +177,7 @@ dojo.declare("dijit._PaletteMixin",
 		//		Focus this widget.  Puts focus on the most recently focused cell.
 
 		// The cell already has tabIndex set, just need to set CSS and focus it
-		dijit.focus(this._currentFocus);
+		focus.focus(this._currentFocus);
 	},
 
 	_onCellClick: function(/*Event*/ evt){
@@ -159,25 +188,27 @@ dojo.declare("dijit._PaletteMixin",
 		// tags:
 		//		private
 
-		var target = evt.currentTarget,	
-			value = this._getDye(target).getValue();
+		var target = evt.target;
+
+		// Find TD associated with click event.   For ColorPalette user likely clicked IMG inside of TD
+		while(target.tagName != "TD"){
+			if(!target.parentNode || target == this.gridNode){	// probably can never happen, but just in case
+				return;
+			}
+			target = target.parentNode;
+		}
+
+		var value = this._getDye(target).getValue();
 
 		// First focus the clicked cell, and then send onChange() notification.
 		// onChange() (via _setValueAttr) must be after the focus call, because
 		// it may trigger a refocus to somewhere else (like the Editor content area), and that
 		// second focus should win.
-		// Use setTimeout because IE doesn't like changing focus inside of an event handler.
 		this._setCurrent(target);
-		setTimeout(dojo.hitch(this, function(){
-			dijit.focus(target);		
-			this._setValueAttr(value, true);		
-		}));
+		focus.focus(target);
+		this._setValueAttr(value, true);
 
-		// workaround bug where hover class is not removed on popup because the popup is
-		// closed and then there's no onblur event on the cell
-		dojo.removeClass(target, "dijitPaletteCellHover");
-
-		dojo.stopEvent(evt);
+		event.stop(evt);
 	},
 
 	_setCurrent: function(/*DomNode*/ node){
@@ -194,13 +225,13 @@ dojo.declare("dijit._PaletteMixin",
 		//		protected
 		if("_currentFocus" in this){
 			// Remove tabIndex on old cell
-			dojo.attr(this._currentFocus, "tabIndex", "-1");
+			domAttr.set(this._currentFocus, "tabIndex", "-1");
 		}
 
 		// Set tabIndex of new cell
 		this._currentFocus = node;
 		if(node){
-			dojo.attr(node, "tabIndex", this.tabIndex);
+			domAttr.set(node, "tabIndex", this.tabIndex);
 		}
 	},
 
@@ -213,11 +244,10 @@ dojo.declare("dijit._PaletteMixin",
 		// priorityChange:
 		//		Optional parameter used to tell the select whether or not to fire
 		//		onChange event.
-		
-		// clear old value and selected cell
-		this.value = null;
+
+		// clear old selected cell
 		if(this._selectedCell >= 0){
-			dojo.removeClass(this._cells[this._selectedCell].node, "dijitPaletteCellSelected");
+			domClass.remove(this._cells[this._selectedCell].node, this.cellClass + "Selected");
 		}
 		this._selectedCell = -1;
 
@@ -226,21 +256,21 @@ dojo.declare("dijit._PaletteMixin",
 			for(var i = 0; i < this._cells.length; i++){
 				if(value == this._cells[i].dye.getValue()){
 					this._selectedCell = i;
-					this.value = value;
-
-					dojo.addClass(this._cells[i].node, "dijitPaletteCellSelected");
-
-					if(priorityChange || priorityChange === undefined){
-						this.onChange(value);
-					}
-
+					domClass.add(this._cells[i].node, this.cellClass + "Selected");
 					break;
 				}
 			}
 		}
+
+		// record new value, or null if no matching cell
+		this._set("value", this._selectedCell >= 0 ? value : null);
+
+		if(priorityChange || priorityChange === undefined){
+			this.onChange(value);
+		}
 	},
 
-	onChange: function(value){
+	onChange: function(/*===== value =====*/){
 		// summary:
 		//		Callback when a cell is selected.
 		// value: String
@@ -268,7 +298,7 @@ dojo.declare("dijit._PaletteMixin",
 
 			// Actually focus the node, for the benefit of screen readers.
 			// Use setTimeout because IE doesn't like changing focus inside of an event handler
-			setTimeout(dojo.hitch(dijit, "focus", focusNode), 0);
+			setTimeout(lang.hitch(dijit, "focus", focusNode), 0);
 		}
 	},
 
@@ -281,13 +311,13 @@ dojo.declare("dijit._PaletteMixin",
 });
 
 /*=====
-dojo.declare("dijit.Dye",
+declare("dijit.Dye",
 	null,
 	{
 		// summary:
 		//		Interface for the JS Object associated with a palette cell (i.e. DOMNode)
 
-		constructor: function(alias){
+		constructor: function(alias, row, col){
 			// summary:
 			//		Initialize according to value or alias like "white"
 			// alias: String
@@ -311,3 +341,5 @@ dojo.declare("dijit.Dye",
 	}
 );
 =====*/
+
+});

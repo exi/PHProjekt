@@ -1,12 +1,21 @@
-dojo.provide("dojo.NodeList-traverse");
+define(["./query", "./_base/lang", "./_base/array"], function(dquery, lang, array) {
+	// module:
+	//		dojo/NodeList-traverse
+	// summary:
+	//		TODOC
+
+var NodeList = dquery.NodeList;
 
 /*=====
 dojo["NodeList-traverse"] = {
 	// summary: Adds a chainable methods to dojo.query() / Nodelist instances for traversing the DOM
 };
+
+// doc alias helpers:
+NodeList = dojo.NodeList;
 =====*/
 
-dojo.extend(dojo.NodeList, {
+lang.extend(NodeList, {
 	_buildArrayFromCallback: function(/*Function*/callback){
 		// summary:
 		// 		builds a new array of possibly differing size based on the input list.
@@ -19,21 +28,10 @@ dojo.extend(dojo.NodeList, {
 				ary = ary.concat(items);
 			}
 		}
-		return ary;	
+		return ary;	//Array
 	},
 
-	_filterQueryResult: function(nodeList, query){
-		// summmary: 
-		// 		Replacement for dojo._filterQueryResult that does a full
-		// 		query. Slower, but allows for more types of queries.
-		var filter = dojo.filter(nodeList, function(node){
-			return dojo.query(query, node.parentNode).indexOf(node) != -1;
-		});
-		var result = this._wrap(filter);
-		return result;
-	},
-
-	_getUniqueAsNodeList: function(nodes){
+	_getUniqueAsNodeList: function(/*Array*/ nodes){
 		// summary:
 		// 		given a list of nodes, make sure only unique
 		// 		elements are returned as our NodeList object.
@@ -44,32 +42,32 @@ dojo.extend(dojo.NodeList, {
 			//Should be a faster way to do this. dojo.query has a private
 			//_zip function that may be inspirational, but there are pathways
 			//in query that force nozip?
-			if(node.nodeType == 1 && dojo.indexOf(ary, node) == -1){
+			if(node.nodeType == 1 && array.indexOf(ary, node) == -1){
 				ary.push(node);
 			}
 		}
 		return this._wrap(ary, null, this._NodeListCtor);	 //dojo.NodeList
 	},
 
-	_getUniqueNodeListWithParent: function(nodes, query){
+	_getUniqueNodeListWithParent: function(/*Array*/ nodes, /*String*/ query){
 		// summary:
 		// 		gets unique element nodes, filters them further
 		// 		with an optional query and then calls _stash to track parent NodeList.
 		var ary = this._getUniqueAsNodeList(nodes);
-		ary = (query ? this._filterQueryResult(ary, query) : ary);
+		ary = (query ? dquery._filterResult(ary, query) : ary);
 		return ary._stash(this);  //dojo.NodeList
 	},
 
-	_getRelatedUniqueNodes: function(/*String?*/query, /*Function*/callback){
+	_getRelatedUniqueNodes: function(/*String?*/ query, /*Function*/ callback){
 		// summary:
 		// 		cycles over all the nodes and calls a callback
 		// 		to collect nodes for a possible inclusion in a result.
-		// 		The callback will get two args: callback(node, ary), 
+		// 		The callback will get two args: callback(node, ary),
 		// 		where ary is the array being used to collect the nodes.
 		return this._getUniqueNodeListWithParent(this._buildArrayFromCallback(callback), query);  //dojo.NodeList
 	},
 
-	children: function(/*String?*/query){
+	children: function(/*String?*/ query){
 		// summary:
 		// 		Returns all immediate child elements for nodes in this dojo.NodeList.
 		// 		Optionally takes a query to filter the child elements.
@@ -96,46 +94,47 @@ dojo.extend(dojo.NodeList, {
 		//	|	dojo.query(".container").children(".red");
 		//		returns the two divs that have the class "red".
 		return this._getRelatedUniqueNodes(query, function(node, ary){
-			return dojo._toArray(node.childNodes);
+			return lang._toArray(node.childNodes);
 		}); //dojo.NodeList
 	},
 
-	closest: function(/*String*/query){
+	closest: function(/*String*/ query, /*String|DOMNode?*/ root){
 		// summary:
 		// 		Returns closest parent that matches query, including current node in this
 		// 		dojo.NodeList if it matches the query.
 		// description:
 		// 		.end() can be used on the returned dojo.NodeList to get back to the
 		// 		original dojo.NodeList.
-		//	query:
+		// query:
 		//		a CSS selector.
+		// root:
+		//		If specified, query is relative to "root" rather than document body.
 		// returns:
 		//		dojo.NodeList, the closest parent that matches the query, including the current
 		//		node in this dojo.NodeList if it matches the query.
-		//	example:
+		// example:
 		//		assume a DOM created by this markup:
 		//	|	<div class="container">
-		// 	|		<div class="red">Red One</div>
-		// 	|		Some Text
-		// 	|		<div class="blue">Blue One</div>
-		// 	|		<div class="red">Red Two</div>
-		// 	|		<div class="blue">Blue Two</div>
+		//	|		<div class="red">Red One</div>
+		//	|		Some Text
+		//	|		<div class="blue">Blue One</div>
+		//	|		<div class="red">Red Two</div>
+		//	|		<div class="blue">Blue Two</div>
 		//	|	</div>
 		//		Running this code:
 		//	|	dojo.query(".red").closest(".container");
 		//		returns the div with class "container".
-		var self = this;
-		return this._getRelatedUniqueNodes(query, function(node, ary){
+		return this._getRelatedUniqueNodes(null, function(node, ary){
 			do{
-				if(self._filterQueryResult([node], query).length){
+				if(dquery._filterResult([node], query, root).length){
 					return node;
 				}
-			}while((node = node.parentNode) && node.nodeType == 1);
+			}while(node != root && (node = node.parentNode) && node.nodeType == 1);
 			return null; //To make rhino strict checking happy.
 		}); //dojo.NodeList
 	},
 
-	parent: function(/*String?*/query){
+	parent: function(/*String?*/ query){
 		// summary:
 		// 		Returns immediate parent elements for nodes in this dojo.NodeList.
 		// 		Optionally takes a query to filter the parent elements.
@@ -165,7 +164,7 @@ dojo.extend(dojo.NodeList, {
 		}); //dojo.NodeList
 	},
 
-	parents: function(/*String?*/query){
+	parents: function(/*String?*/ query){
 		// summary:
 		// 		Returns all parent elements for nodes in this dojo.NodeList.
 		// 		Optionally takes a query to filter the child elements.
@@ -192,7 +191,7 @@ dojo.extend(dojo.NodeList, {
 		//	|	dojo.query(".text").parents(".container");
 		//		returns the one div with class "container".
 		return this._getRelatedUniqueNodes(query, function(node, ary){
-			var pary = []
+			var pary = [];
 			while(node.parentNode){
 				node = node.parentNode;
 				pary.push(node);
@@ -201,7 +200,7 @@ dojo.extend(dojo.NodeList, {
 		}); //dojo.NodeList
 	},
 
-	siblings: function(/*String?*/query){
+	siblings: function(/*String?*/ query){
 		// summary:
 		// 		Returns all sibling elements for nodes in this dojo.NodeList.
 		// 		Optionally takes a query to filter the sibling elements.
@@ -229,7 +228,7 @@ dojo.extend(dojo.NodeList, {
 		//	|	dojo.query(".first").siblings(".red");
 		//		returns the two div with class "red".
 		return this._getRelatedUniqueNodes(query, function(node, ary){
-			var pary = []
+			var pary = [];
 			var nodes = (node.parentNode && node.parentNode.childNodes);
 			for(var i = 0; i < nodes.length; i++){
 				if(nodes[i] != node){
@@ -240,7 +239,7 @@ dojo.extend(dojo.NodeList, {
 		}); //dojo.NodeList
 	},
 
-	next: function(/*String?*/query){
+	next: function(/*String?*/ query){
 		// summary:
 		// 		Returns the next element for nodes in this dojo.NodeList.
 		// 		Optionally takes a query to filter the next elements.
@@ -275,7 +274,7 @@ dojo.extend(dojo.NodeList, {
 		}); //dojo.NodeList
 	},
 
-	nextAll: function(/*String?*/query){
+	nextAll: function(/*String?*/ query){
 		// summary:
 		// 		Returns all sibling elements that come after the nodes in this dojo.NodeList.
 		// 		Optionally takes a query to filter the sibling elements.
@@ -302,7 +301,7 @@ dojo.extend(dojo.NodeList, {
 		//	|	dojo.query(".first").nextAll(".red");
 		//		returns the one div with class "red" and innerHTML "Red Two".
 		return this._getRelatedUniqueNodes(query, function(node, ary){
-			var pary = []
+			var pary = [];
 			var next = node;
 			while((next = next.nextSibling)){
 				if(next.nodeType == 1){
@@ -313,7 +312,7 @@ dojo.extend(dojo.NodeList, {
 		}); //dojo.NodeList
 	},
 
-	prev: function(/*String?*/query){
+	prev: function(/*String?*/ query){
 		// summary:
 		// 		Returns the previous element for nodes in this dojo.NodeList.
 		// 		Optionally takes a query to filter the previous elements.
@@ -348,7 +347,7 @@ dojo.extend(dojo.NodeList, {
 		}); //dojo.NodeList
 	},
 
-	prevAll: function(/*String?*/query){
+	prevAll: function(/*String?*/ query){
 		// summary:
 		// 		Returns all sibling elements that come before the nodes in this dojo.NodeList.
 		// 		Optionally takes a query to filter the sibling elements.
@@ -377,7 +376,7 @@ dojo.extend(dojo.NodeList, {
 		//	|	dojo.query(".first").prevAll(".red");
 		//		returns the one div with class "red prev" and innerHTML "Red One".
 		return this._getRelatedUniqueNodes(query, function(node, ary){
-			var pary = []
+			var pary = [];
 			var prev = node;
 			while((prev = prev.previousSibling)){
 				if(prev.nodeType == 1){
@@ -408,7 +407,7 @@ dojo.extend(dojo.NodeList, {
 		//		Running this code:
 		//	|	dojo.query(".second").prevAll().andSelf();
 		//		returns the two divs with class of "prev", as well as the div with class "second".
-		return this.concat(this._parent);
+		return this.concat(this._parent);	//dojo.NodeList
 	},
 
 	//Alternate methods for the :first/:last/:even/:odd pseudos.
@@ -452,7 +451,7 @@ dojo.extend(dojo.NodeList, {
 		//	|	</div>
 		//		Running this code:
 		//	|	dojo.query(".blue").last();
-		//		returns the last div with class "blue", 
+		//		returns the last div with class "blue",
 		return this._wrap((this.length ? [this[this.length - 1]] : []), this); //dojo.NodeList
 	},
 
@@ -503,4 +502,7 @@ dojo.extend(dojo.NodeList, {
 			return i % 2 == 0;
 		}); //dojo.NodeList
 	}
+});
+
+return NodeList;
 });

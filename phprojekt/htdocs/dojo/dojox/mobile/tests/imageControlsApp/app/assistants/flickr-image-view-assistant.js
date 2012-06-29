@@ -1,4 +1,3 @@
-dojo.provide("FlickrImageViewAssistant");
 dojo.require("dojox.mobile.app.SceneAssistant");
 
 dojo.declare("FlickrImageViewAssistant", dojox.mobile.app.SceneAssistant, {
@@ -27,8 +26,6 @@ dojo.declare("FlickrImageViewAssistant", dojox.mobile.app.SceneAssistant, {
 			}
 		});
 		
-		var index = 1;
-		
 		var reportDiv = this.controller.query(".report")[0];
 		
 		this.connect(viewer, "onChange", function(direction){
@@ -36,15 +33,15 @@ dojo.declare("FlickrImageViewAssistant", dojox.mobile.app.SceneAssistant, {
 			
 			// If we are not at the first image, set the leftUrl attribute
 			if(_this.index > 0){
-				viewer.attr("leftUrl", _this.urls[_this.index - 1]);
+				viewer.set("leftUrl", _this.urls[_this.index - 1]);
 			}
 		
 			// If we are not at the last image, set the rightUrl attribute
 			if(_this.index < _this.urls.length - 1){
-				viewer.attr("rightUrl", _this.urls[_this.index + 1]);
+				viewer.set("rightUrl", _this.urls[_this.index + 1]);
 			}
 			
-			reportDiv.innerHTML = 
+			reportDiv.innerHTML =
 				(_this.index + 1) + " of " + _this.urls.length
 				+ " " + _this.urls[_this.index].title;
 		});
@@ -76,26 +73,25 @@ dojo.declare("FlickrImageViewAssistant", dojox.mobile.app.SceneAssistant, {
 		this.index = Math.min(images.length - 1, Math.max(0, startIndex));
 	
 		if (this.index > 0) {
-			this.viewer.attr("leftUrl", images[this.index - 1]);
+			this.viewer.set("leftUrl", images[this.index - 1]);
 		}
-		this.viewer.attr("centerUrl", images[this.index]);
+		this.viewer.set("centerUrl", images[this.index]);
 		
 		if (this.index < images.length) {
-			this.viewer.attr("rightUrl", images[this.index + 1]);
+			this.viewer.set("rightUrl", images[this.index + 1]);
 		}
 	},
   
 	loadInteresting: function(){
 		console.log("loading interesting");
-		var _this = this;
-		
+
 		var url = "http://api.flickr.com/services/rest/?method=" +
 					"flickr.interestingness.getList";
 					
 
 		var deferred = dojo.io.script.get({
 			url: url,
-			content: { 
+			content: {
 				api_key: this.apiKey,
 				format: "json"
 			},
@@ -106,21 +102,20 @@ dojo.declare("FlickrImageViewAssistant", dojox.mobile.app.SceneAssistant, {
 
 	loadGroup: function(groupData){
 		console.log("loading group ", groupData);
-		var _this = this;
-		
+
 		var url = "http://api.flickr.com/services/rest/?method=" +
 					"flickr.groups.pools.getPhotos";
 					
 //		"http://api.flickr.com/services/rest/?method=flickr.groups.pools.getPhotos"
 //      + "&api_key=" + lib.API_KEY
-//      + "&group_id=" + group.id 
-//      + "&extras=owner_name" 
+//      + "&group_id=" + group.id
+//      + "&extras=owner_name"
 //      + "&per_page=" + (perPage || 10)
 //      + "&format=json&nojsoncallback=1"
 
 		var deferred = dojo.io.script.get({
 			url: url,
-			content: { 
+			content: {
 				api_key: this.apiKey,
 				format: "json",
 				group_id: groupData.nsid,
@@ -143,8 +138,8 @@ dojo.declare("FlickrImageViewAssistant", dojox.mobile.app.SceneAssistant, {
 			var baseUrl;
 			
 			for(var i = 0; i < images.length; i++){
-				baseUrl = "http://farm" 
-							+ images[i].farm 
+				baseUrl = "http://farm"
+							+ images[i].farm
 							+ ".static.flickr.com/"
 							+ images[i].server
 							+ "/"
@@ -160,8 +155,8 @@ dojo.declare("FlickrImageViewAssistant", dojox.mobile.app.SceneAssistant, {
 			this.urls = urls;
 			this.index = 0;
 		
-			this.viewer.attr("centerUrl", urls[0]);
-			this.viewer.attr("rightUrl", urls[1]);
+			this.viewer.set("centerUrl", urls[0]);
+			this.viewer.set("rightUrl", urls[1]);
 		}else{
 			console.log("didn't get photos");
 		}

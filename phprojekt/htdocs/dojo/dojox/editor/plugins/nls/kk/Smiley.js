@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	smiley: "Эмограмма енгізу",
 	emoticonSmile: "күлімсіреу",
@@ -5,8 +7,8 @@
 	emoticonWink: "көз қысу",
 	emoticonGrin: "ақситу",
 	emoticonCool: "салқын",
-	emoticonAngry: "ашулы",  
-	emoticonHalf: "жарты", 
+	emoticonAngry: "ашулы",
+	emoticonHalf: "жарты",
 	emoticonEyebrow: "қас",
 	emoticonFrown: "қабағы түйілу",
 	emoticonShy: "ұялшақ",
@@ -15,8 +17,11 @@
 	emoticonTongue: "тіл",
 	emoticonIdea: "ой",
 	emoticonYes: "иә",
-	emoticonNo: "ешбір",	
+	emoticonNo: "ешбір",
 	emoticonAngel: "періште",
-	emoticonCrying: "жылау"
+	emoticonCrying: "жылау",
+	emoticonHappy: "бақыт"
 })
 
+//end v1.x content
+);

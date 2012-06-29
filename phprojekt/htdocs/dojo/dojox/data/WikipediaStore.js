@@ -1,12 +1,12 @@
-dojo.provide("dojox.data.WikipediaStore");
+define(["dojo/_base/kernel", "dojo/_base/lang", "dojo/_base/declare", "dojo/io/script", 
+		"dojo/io-query", "dojox/rpc/Service", "dojox/data/ServiceStore"], 
+  function(kernel, lang, declare, scriptIO, ioQuery, Service, ServiceStore) {
 
-dojo.require("dojo.io.script");
-dojo.require("dojox.rpc.Service");
-dojo.require("dojox.data.ServiceStore");
+kernel.experimental("dojox.data.WikipediaStore");
 
-dojo.experimental("dojox.data.WikipediaStore");
+/*===== var ServiceStore = dojox.data.ServiceStore; =====*/
 
-dojo.declare("dojox.data.WikipediaStore", dojox.data.ServiceStore,{
+return declare("dojox.data.WikipediaStore", ServiceStore, {
 	//	summary:
 	//		Initializer for the Wikipedia data store interface.
 	//	description:
@@ -26,7 +26,7 @@ dojo.declare("dojox.data.WikipediaStore", dojox.data.ServiceStore,{
 		if(options && options.service){
 			this.service = options.service;
 		}else{
-			var svc = new dojox.rpc.Service(dojo.moduleUrl("dojox.rpc.SMDLibrary", "wikipedia.smd"));
+			var svc = new Service(require.toUrl("dojox/rpc/SMDLibrary/wikipedia.smd"));
 			this.service = svc.query;
 		}
 
@@ -64,7 +64,7 @@ dojo.declare("dojox.data.WikipediaStore", dojox.data.ServiceStore,{
 		//		|		},
 		//		|		// define your handlers here
 		//		|	});
-		var rq = dojo.mixin({}, request.query);
+		var rq = lang.mixin({}, request.query);
 		if(rq && (!rq.action || rq.action === "parse")){
 			// default to a single page fetch
 			rq.action = "parse";
@@ -91,7 +91,7 @@ dojo.declare("dojox.data.WikipediaStore", dojox.data.ServiceStore,{
 	_processResults: function(results, def){
 		if(results.parse){
 			// loading a complete page
-			results.parse.title = dojo.queryToObject(def.ioArgs.url.split("?")[1]).page;
+			results.parse.title = ioQuery.queryToObject(def.ioArgs.url.split("?")[1]).page;
 			results = [results.parse];
 
 		}else if(results.query && results.query.search){
@@ -111,5 +111,7 @@ dojo.declare("dojox.data.WikipediaStore", dojox.data.ServiceStore,{
 		}
 		return this.inherited(arguments);
 	}
+});
+
 });
 

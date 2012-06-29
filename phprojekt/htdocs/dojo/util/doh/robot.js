@@ -1,13 +1,4 @@
-if(window["dojo"]){
-	dojo.provide("doh.robot");
-	dojo.experimental("doh.robot");
-	dojo.require("doh.runner");
-}else if(!doh["robot"]){
-	doh.robot={};
-}
-
-if(!doh.robot["_robotLoaded"]){
-(function(){
+define(["doh/_browserRunner", "require"], function(doh, require){
 
 	// loading state
 	var _robot = null;
@@ -25,7 +16,7 @@ if(!doh.robot["_robotLoaded"]){
 	doh.run = function(){
 		if(!doh.robot._runsemaphore.unlock()){
 			// hijack doh._onEnd to clear the applet
-			// have to do it here because _browserRunner sets it in onload in standalone case
+			// have to do it here because browserRunner sets it in onload in standalone case
 			var __onEnd = doh._onEnd;
 			doh._onEnd = function(){
 				doh.robot.killRobot();
@@ -59,7 +50,7 @@ if(!doh.robot["_robotLoaded"]){
 	// prime the event pump for fast browsers like Google Chrome - it's so fast, it doesn't stop to listen for keypresses!
 	_spaceReceived: false,
 	_primePump: false,
-	
+
 	_killApplet: function(){}, // overridden by Robot.html
 
 	killRobot: function(){
@@ -84,9 +75,9 @@ if(!doh.robot["_robotLoaded"]){
 			}catch(e){
 				return null;
 			}
-		}	
+		}
 	},
-	
+
 	startRobot: function(){
 		//startRobot should be called to initialize the robot (after the java applet is loaded).
 		//one good place to do this is in a dojo.addOnLoad handler. This function will be called
@@ -184,20 +175,13 @@ if(!doh.robot["_robotLoaded"]){
 		//		Delay to wait after firing.
 		//
 
-		delay = delay || 1;
-		doh.robot._time += delay;
-		setTimeout(function(){
-			doh.robot._time -= delay;
-			f();
-			if(duration){
-				setTimeout(function(){
-					doh.robot._time -= duration;
-				}, duration);
-			}
-		}, doh.robot._time);
-		if(duration){
-			doh.robot._time += duration;
+		var currentTime = (new Date()).getTime();
+		if(currentTime > (doh.robot._time || 0)){
+			doh.robot._time = currentTime;
 		}
+		doh.robot._time += delay || 1;
+		setTimeout(f, doh.robot._time - currentTime);
+		doh.robot._time += duration || 0;
 	},
 
 	typeKeys: function(/*String||Number*/ chars, /*Integer, optional*/ delay, /*Integer, optional*/ duration){
@@ -232,7 +216,7 @@ if(!doh.robot["_robotLoaded"]){
 			}else if(chars.length){
 				_keyPress(chars.charCodeAt(0), 0, false, false, false, false, 0);
 				for(var i = 1; i<chars.length; i++){
-					_keyPress(chars.charCodeAt(i), 0, false, false, false, false, Math.max(Math.floor(duration/chars.length)-20, 0)); // 20ms is fudge for processing time until robot handles wall clock
+					_keyPress(chars.charCodeAt(i), 0, false, false, false, false, Math.max(Math.floor(duration/chars.length), 0));
 				}
 			}
 		}, delay, duration);
@@ -494,7 +478,7 @@ if(!doh.robot["_robotLoaded"]){
 			_robot.wheelMouse(isSecure(), Number(wheelAmt), Number(0), Number(duration||0));
 		},delay,duration);
 	},
-	
+
 	setClipboard: function(/*String*/data,/*String, optional*/format){
 		// summary:
 		//		Set clipboard content.
@@ -532,9 +516,8 @@ if(!doh.robot["_robotLoaded"]){
 	// if loaded with dojo, there might not be a runner.js!
 	if(!iframesrc && window["dojo"]){
 		// if user set document.domain to something else, send it to the Robot too
-		iframesrc = dojo.moduleUrl("util", "doh/")+"Robot.html?domain="+escape(document.domain);
+		iframesrc = require.toUrl("./Robot.html") + "?domain=" + escape(document.domain);
 	}
 	document.writeln('<div id="dohrobotview" style="border:0px none; margin:0px; padding:0px; position:absolute; bottom:0px; right:0px; width:1px; height:1px; overflow:hidden; visibility:hidden; background-color:red;"></div>'+
 		'<iframe application="true" style="border:0px none; z-index:32767; padding:0px; margin:0px; position:absolute; left:0px; top:0px; height:42px; width:200px; overflow:hidden; background-color:transparent;" tabIndex="-1" src="'+iframesrc+'" ALLOWTRANSPARENCY="true"></iframe>');
-})();
-}
+});

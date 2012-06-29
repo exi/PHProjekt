@@ -1,6 +1,9 @@
-dojo.provide("dojo.dnd.Moveable");
+define(["../main", "../Evented", "../touch", "./Mover"], function(dojo, Evented, touch) {
+	// module:
+	//		dojo/dnd/Moveable
+	// summary:
+	//		TODOC
 
-dojo.require("dojo.dnd.Mover");
 
 /*=====
 dojo.declare("dojo.dnd.__MoveableArgs", [], {
@@ -23,12 +26,12 @@ dojo.declare("dojo.dnd.__MoveableArgs", [], {
 });
 =====*/
 
-dojo.declare("dojo.dnd.Moveable", null, {
+dojo.declare("dojo.dnd.Moveable", [Evented], {
 	// object attributes (for markup)
 	handle: "",
 	delay: 0,
 	skip: false,
-	
+
 	constructor: function(node, params){
 		// summary:
 		//		an object, which makes a node moveable
@@ -44,7 +47,7 @@ dojo.declare("dojo.dnd.Moveable", null, {
 		this.skip  = params.skip;
 		this.mover = params.mover ? params.mover : dojo.dnd.Mover;
 		this.events = [
-			dojo.connect(this.handle, "onmousedown", this, "onMouseDown"),
+			dojo.connect(this.handle, touch.press, this, "onMouseDown"),
 			// cancel text selection and text dragging
 			dojo.connect(this.handle, "ondragstart",   this, "onSelectStart"),
 			dojo.connect(this.handle, "onselectstart", this, "onSelectStart")
@@ -52,8 +55,8 @@ dojo.declare("dojo.dnd.Moveable", null, {
 	},
 
 	// markup methods
-	markupFactory: function(params, node){
-		return new dojo.dnd.Moveable(node, params);
+	markupFactory: function(params, node, ctor){
+		return new ctor(node, params);
 	},
 
 	// methods
@@ -63,18 +66,18 @@ dojo.declare("dojo.dnd.Moveable", null, {
 		dojo.forEach(this.events, dojo.disconnect);
 		this.events = this.node = this.handle = null;
 	},
-	
+
 	// mouse event processors
 	onMouseDown: function(e){
 		// summary:
-		//		event processor for onmousedown, creates a Mover for the node
+		//		event processor for onmousedown/ontouchstart, creates a Mover for the node
 		// e: Event
-		//		mouse event
+		//		mouse/touch event
 		if(this.skip && dojo.dnd.isFormElement(e)){ return; }
 		if(this.delay){
 			this.events.push(
-				dojo.connect(this.handle, "onmousemove", this, "onMouseMove"),
-				dojo.connect(this.handle, "onmouseup", this, "onMouseUp")
+				dojo.connect(this.handle, touch.move, this, "onMouseMove"),
+				dojo.connect(this.handle, touch.release, this, "onMouseUp")
 			);
 			this._lastX = e.pageX;
 			this._lastY = e.pageY;
@@ -85,9 +88,9 @@ dojo.declare("dojo.dnd.Moveable", null, {
 	},
 	onMouseMove: function(e){
 		// summary:
-		//		event processor for onmousemove, used only for delayed drags
+		//		event processor for onmousemove/ontouchmove, used only for delayed drags
 		// e: Event
-		//		mouse event
+		//		mouse/touch event
 		if(Math.abs(e.pageX - this._lastX) > this.delay || Math.abs(e.pageY - this._lastY) > this.delay){
 			this.onMouseUp(e);
 			this.onDragDetected(e);
@@ -113,7 +116,7 @@ dojo.declare("dojo.dnd.Moveable", null, {
 			dojo.stopEvent(e);
 		}
 	},
-	
+
 	// local events
 	onDragDetected: function(/* Event */ e){
 		// summary:
@@ -125,8 +128,8 @@ dojo.declare("dojo.dnd.Moveable", null, {
 		// summary:
 		//		called before every move operation
 		dojo.publish("/dnd/move/start", [mover]);
-		dojo.addClass(dojo.body(), "dojoMove"); 
-		dojo.addClass(this.node, "dojoMoveItem"); 
+		dojo.addClass(dojo.body(), "dojoMove");
+		dojo.addClass(this.node, "dojoMoveItem");
 	},
 	onMoveStop: function(/* dojo.dnd.Mover */ mover){
 		// summary:
@@ -139,7 +142,7 @@ dojo.declare("dojo.dnd.Moveable", null, {
 		// summary:
 		//		called during the very first move notification;
 		//		can be used to initialize coordinates, can be overwritten.
-		
+
 		// default implementation does nothing
 	},
 	onMove: function(/* dojo.dnd.Mover */ mover, /* Object */ leftTop, /* Event */ e){
@@ -155,13 +158,16 @@ dojo.declare("dojo.dnd.Moveable", null, {
 	onMoving: function(/* dojo.dnd.Mover */ mover, /* Object */ leftTop){
 		// summary:
 		//		called before every incremental move; can be overwritten.
-		
+
 		// default implementation does nothing
 	},
 	onMoved: function(/* dojo.dnd.Mover */ mover, /* Object */ leftTop){
 		// summary:
 		//		called after every incremental move; can be overwritten.
-		
+
 		// default implementation does nothing
 	}
+});
+
+return dojo.dnd.Moveable;
 });

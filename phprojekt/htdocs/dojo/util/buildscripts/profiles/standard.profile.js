@@ -5,7 +5,17 @@ dependencies = {
 	//But in general for a build, console.warn/error should be the only things to survive anyway.
 	stripConsole: "normal",
 
+	selectorEngine:"acme",
+
 	layers: [
+		{
+			name: "dojo.js",
+			dependencies: [
+				"dojo.loadInit",
+				"dojo.text",
+				"dojo.i18n"
+			]
+		},
 		{
 			name: "../dijit/dijit.js",
 			dependencies: [
@@ -33,7 +43,7 @@ dependencies = {
 				"dojox.gfx"
 			]
 		},
-		// FIXME: 
+		// FIXME:
 		//		we probably need a better structure for this layer and need to
 		//		add some of the most common themes
 		{
@@ -55,6 +65,30 @@ dependencies = {
 				"dojox.dtl.tag.loader",
 				"dojox.dtl.tag.misc",
 				"dojox.dtl.ext-dojo.NodeList"
+			]
+		},
+		{
+			name: "../dojox/mobile.js",
+			dependencies: [
+				"dojox.mobile"
+			]
+		},
+		{
+			name: "../dojox/mobile/app.js",
+			dependencies: [
+				"dojox.mobile.app"
+			]
+		},
+		{
+			name: "../dojox/mobile/compat.js",
+			dependencies: [
+				"dojox.mobile.compat"
+			]
+		},
+		{
+			name: "../dojox/mobile/app/compat.js",
+			dependencies: [
+				"dojox.mobile.app.compat"
 			]
 		}
 	],

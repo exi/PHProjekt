@@ -1,18 +1,48 @@
-dojo.provide("dojox.gfx.canvas");
+define(["./_base", "dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/_base/window", "dojo/dom-geometry", 
+		"dojo/dom", "./_base", "./shape", "./path", "./arc", "./matrix", "./decompose"], 
+  function(g, lang, arr, declare, win, domGeom, dom, gfxBase, gs, pathLib, ga, m, decompose ){
+/*===== 
+	dojox.gfx.canvas = {
+	// module:
+	//		dojox/gfx/canvas
+	// summary:
+	//		This the graphics rendering bridge for W3C Canvas compliant browsers.
+	//		Since Canvas is an immediate mode graphics api, with no object graph or
+	//		eventing capabilities, use of this module alone will only add in drawing support.
+	//		The additional module, canvasWithEvents extends this module with additional support
+	//		for handling events on Canvas.  By default, the support for events is now included 
+	//		however, if only drawing capabilities are needed, canvas event module can be disabled
+	//		using the dojoConfig option, canvasEvents:true|false.
+	//		The id of the Canvas renderer is 'canvas'.  This id can be used when switch Dojo's
+	//		graphics context between renderer implementations.  See dojox.gfx._base switchRenderer
+	//		API.
+	};
+	g = dojox.gfx;
+	gs = dojox.gfx.shape;
+	pathLib.Path = dojox.gfx.path.Path;
+	pathLib.TextPath = dojox.gfx.path.TextPath;
+	canvas = dojox.gfx.canvas;
+	canvas.Shape = dojox.gfx.canvas.Shape;
+	gs.Shape = dojox.gfx.shape.Shape;
+	gs.Rect = dojox.gfx.shape.Rect;
+	gs.Ellipse = dojox.gfx.shape.Ellipse;
+	gs.Circle = dojox.gfx.shape.Circle;
+	gs.Line = dojox.gfx.shape.Line;
+	gs.PolyLine = dojox.gfx.shape.PolyLine;
+	gs.Image = dojox.gfx.shape.Image;
+	gs.Text = dojox.gfx.shape.Text;
+	gs.Surface = dojox.gfx.shape.Surface;
+  =====*/
 
-dojo.require("dojox.gfx._base");
-dojo.require("dojox.gfx.shape");
-dojo.require("dojox.gfx.path");
-dojo.require("dojox.gfx.arc");
-dojo.require("dojox.gfx.decompose");
+	var canvas = g.canvas = {};
+	var pattrnbuffer = null,
+		mp = m.multiplyPoint, 
+		pi = Math.PI, 
+		twoPI = 2 * pi, 
+		halfPI = pi /2,
+		extend = lang.extend;
 
-dojo.experimental("dojox.gfx.canvas");
-
-(function(){
-	var d = dojo, g = dojox.gfx, gs = g.shape, ga = g.arc,
-		m = g.matrix, mp = m.multiplyPoint, pi = Math.PI, twoPI = 2 * pi, halfPI = pi /2;
-
-	d.extend(g.Shape, {
+	declare("dojox.gfx.canvas.Shape", gs.Shape, {
 		_render: function(/* Object */ ctx){
 			// summary: render the shape
 			ctx.save();
@@ -39,12 +69,32 @@ dojo.experimental("dojox.gfx.canvas");
 		},
 		_renderFill: function(/* Object */ ctx, /* Boolean */ apply){
 			if("canvasFill" in this){
+				var fs = this.fillStyle;
 				if("canvasFillImage" in this){
-					this.canvasFill = ctx.createPattern(this.canvasFillImage, "repeat");
+					var w = fs.width, h = fs.height,
+						iw = this.canvasFillImage.width, ih = this.canvasFillImage.height,
+						// let's match the svg default behavior wrt. aspect ratio: xMidYMid meet
+						sx = w == iw ? 1 : w / iw,
+						sy = h == ih ? 1 : h / ih,
+						s = Math.min(sx,sy), //meet->math.min , slice->math.max
+						dx = (w - s * iw)/2,
+						dy = (h - s * ih)/2;
+					// the buffer used to scaled the image
+					pattrnbuffer.width = w; pattrnbuffer.height = h;
+					var copyctx = pattrnbuffer.getContext("2d");
+					copyctx.clearRect(0, 0, w, h);
+					copyctx.drawImage(this.canvasFillImage, 0, 0, iw, ih, dx, dy, s*iw, s*ih);
+					this.canvasFill = ctx.createPattern(pattrnbuffer, "repeat");
 					delete this.canvasFillImage;
 				}
 				ctx.fillStyle = this.canvasFill;
-				if(apply){ ctx.fill(); }
+				if(apply){
+					// offset the pattern
+					if (fs.type==="pattern" && (fs.x !== 0 || fs.y !== 0)) {
+						ctx.translate(fs.x,fs.y);
+					}
+					ctx.fill();
+				}
 			}else{
 				ctx.fillStyle = "rgba(0,0,0,0.0)";
 			}
@@ -88,7 +138,7 @@ dojo.experimental("dojox.gfx.canvas");
 				};
 		};
 
-	modifyMethod(g.Shape, "setTransform",
+	modifyMethod(canvas.Shape, "setTransform",
 		function(){
 			// prepare Canvas-specific structures
 			if(this.matrix){
@@ -98,7 +148,7 @@ dojo.experimental("dojox.gfx.canvas");
 			}
 		});
 
-	modifyMethod(g.Shape, "setFill",
+	modifyMethod(canvas.Shape, "setFill",
 		function(){
 			// prepare Canvas-specific structures
 			var fs = this.fillStyle, f;
@@ -111,12 +161,18 @@ dojo.experimental("dojox.gfx.canvas");
 							f = fs.type == "linear" ?
 								ctx.createLinearGradient(fs.x1, fs.y1, fs.x2, fs.y2) :
 								ctx.createRadialGradient(fs.cx, fs.cy, 0, fs.cx, fs.cy, fs.r);
-							d.forEach(fs.colors, function(step){
+							arr.forEach(fs.colors, function(step){
 								f.addColorStop(step.offset, g.normalizeColor(step.color).toString());
 							});
 							break;
 						case "pattern":
-							var img = new Image(fs.width, fs.height);
+							if (!pattrnbuffer) {
+								pattrnbuffer = document.createElement("canvas");
+							}
+							// no need to scale the image since the canvas.createPattern uses
+							// the original image data and not the scaled ones (see spec.)
+							// the scaling needs to be done at rendering time in a context buffer
+							var img =new Image();
 							this.surface.downloadImage(img, fs.src);
 							this.canvasFillImage = img;
 					}
@@ -130,10 +186,10 @@ dojo.experimental("dojox.gfx.canvas");
 			}
 		});
 
-	modifyMethod(g.Shape, "setStroke");
-	modifyMethod(g.Shape, "setShape");
+	modifyMethod(canvas.Shape, "setStroke");
+	modifyMethod(canvas.Shape, "setShape");
 
-	dojo.declare("dojox.gfx.Group", g.Shape, {
+	declare("dojox.gfx.canvas.Group", canvas.Shape, {
 		// summary: a group shape (Canvas), which can be used
 		//	to logically group shapes (e.g, to propagate matricies)
 		constructor: function(){
@@ -143,8 +199,6 @@ dojo.experimental("dojox.gfx.canvas");
 			// summary: render the group
 			ctx.save();
 			this._renderTransform(ctx);
-			this._renderFill(ctx);
-			this._renderStroke(ctx);
 			for(var i = 0; i < this.children.length; ++i){
 				this.children[i]._render(ctx);
 			}
@@ -152,7 +206,7 @@ dojo.experimental("dojox.gfx.canvas");
 		}
 	});
 
-	dojo.declare("dojox.gfx.Rect", gs.Rect, {
+	declare("dojox.gfx.canvas.Rect", [canvas.Shape, gs.Rect], {
 		// summary: a rectangle shape (Canvas)
 		_renderShape: function(/* Object */ ctx){
 			var s = this.shape, r = Math.min(s.r, s.height / 2, s.width / 2),
@@ -185,10 +239,10 @@ dojo.experimental("dojox.gfx.canvas");
 		}
 	})();
 
-	dojo.declare("dojox.gfx.Ellipse", gs.Ellipse, {
+	declare("dojox.gfx.canvas.Ellipse", [canvas.Shape, gs.Ellipse], {
 		// summary: an ellipse shape (Canvas)
 		setShape: function(){
-			g.Ellipse.superclass.setShape.apply(this, arguments);
+			this.inherited(arguments);
 			// prepare Canvas-specific structures
 			var s = this.shape, t, c1, c2, r = [],
 				M = m.normalize([m.translate(s.cx, s.cy), m.scale(s.rx, s.ry)]);
@@ -214,7 +268,7 @@ dojo.experimental("dojox.gfx.canvas");
 		}
 	});
 
-	dojo.declare("dojox.gfx.Circle", gs.Circle, {
+	declare("dojox.gfx.canvas.Circle", [canvas.Shape, gs.Circle], {
 		// summary: a circle shape (Canvas)
 		_renderShape: function(/* Object */ ctx){
 			var s = this.shape;
@@ -223,7 +277,7 @@ dojo.experimental("dojox.gfx.canvas");
 		}
 	});
 
-	dojo.declare("dojox.gfx.Line", gs.Line, {
+	declare("dojox.gfx.canvas.Line", [canvas.Shape, gs.Line], {
 		// summary: a line shape (Canvas)
 		_renderShape: function(/* Object */ ctx){
 			var s = this.shape;
@@ -233,35 +287,34 @@ dojo.experimental("dojox.gfx.canvas");
 		}
 	});
 
-	dojo.declare("dojox.gfx.Polyline", gs.Polyline, {
+	declare("dojox.gfx.canvas.Polyline", [canvas.Shape, gs.Polyline], {
 		// summary: a polyline/polygon shape (Canvas)
 		setShape: function(){
-			g.Polyline.superclass.setShape.apply(this, arguments);
-			// dojo.inherited("setShape", arguments);
-			// prepare Canvas-specific structures
-			var p = this.shape.points, f = p[0], r = [], c, i;
-			if(p.length){
-				if(typeof f == "number"){
-					r.push(f, p[1]);
-					i = 2;
-				}else{
-					r.push(f.x, f.y);
-					i = 1;
-				}
-				for(; i < p.length; ++i){
-					c = p[i];
-					if(typeof c == "number"){
-						r.push(c, p[++i]);
-					}else{
+			this.inherited(arguments);
+			var p = this.shape.points, f = p[0], r, c, i;
+			this.bbox = null;
+			// normalize this.shape.points as array of points: [{x,y}, {x,y}, ...]
+			this._normalizePoints();			
+			// after _normalizePoints, if shape.points was [x1,y1,x2,y2,..], shape.points references a new array 
+			// and p references the original points array
+			// prepare Canvas-specific structures, if needed
+			if(p.length){  
+				if(typeof f == "number"){ // already in the canvas format [x1,y1,x2,y2,...]
+					r = p; 
+				}else{ // convert into canvas-specific format
+					r = [];
+					for(i=0; i < p.length; ++i){
+						c = p[i];
 						r.push(c.x, c.y);
 					}
 				}
+			}else{
+				r = [];
 			}
 			this.canvasPolyline = r;
 			return this;
 		},
 		_renderShape: function(/* Object */ ctx){
-			// console.debug("Polyline::_renderShape");
 			var p = this.canvasPolyline;
 			if(p.length){
 				ctx.beginPath();
@@ -273,10 +326,10 @@ dojo.experimental("dojox.gfx.canvas");
 		}
 	});
 
-	dojo.declare("dojox.gfx.Image", gs.Image, {
+	declare("dojox.gfx.canvas.Image", [canvas.Shape, gs.Image], {
 		// summary: an image shape (Canvas)
 		setShape: function(){
-			g.Image.superclass.setShape.apply(this, arguments);
+			this.inherited(arguments);
 			// prepare Canvas-specific structures
 			var img = new Image();
 			this.surface.downloadImage(img, this.shape.src);
@@ -288,43 +341,115 @@ dojo.experimental("dojox.gfx.canvas");
 			ctx.drawImage(this.canvasImage, s.x, s.y, s.width, s.height);
 		}
 	});
-
-	dojo.declare("dojox.gfx.Text", gs.Text, {
-		// summary: a text shape (Canvas)
-		_renderShape: function(/* Object */ ctx){
-			var s = this.shape;
-			// nothing for the moment
+	
+	declare("dojox.gfx.canvas.Text", [canvas.Shape, gs.Text], {
+		_setFont:function(){
+			if (this.fontStyle){
+				this.canvasFont = g.makeFontString(this.fontStyle);
+			} else {
+				delete this.canvasFont;
+			}
+		},
+		
+		getTextWidth: function(){
+			// summary: get the text width in pixels
+			var s = this.shape, w = 0, ctx;
+			if(s.text && s.text.length > 0){
+				ctx = this.surface.rawNode.getContext("2d");
+				ctx.save();
+				this._renderTransform(ctx);
+				this._renderFill(ctx, false);
+				this._renderStroke(ctx, false);
+				if (this.canvasFont)
+					ctx.font = this.canvasFont;
+				w = ctx.measureText(s.text).width;
+				ctx.restore();
+			}
+			return w;
+		},
+		
+		// override to apply first fill and stroke (
+		// the base implementation is for path-based shape that needs to first define the path then to fill/stroke it.
+		// Here, we need the fillstyle or strokestyle to be set before calling fillText/strokeText.
+		_render: function(/* Object */ctx){
+			// summary: render the shape
+			// ctx : Object: the drawing context.
+			ctx.save();
+			this._renderTransform(ctx);
+			this._renderFill(ctx, false);
+			this._renderStroke(ctx, false);
+			this._renderShape(ctx);
+			ctx.restore();
+		},
+		
+		_renderShape: function(ctx){
+			// summary: a text shape (Canvas)
+			// ctx : Object: the drawing context.
+			var ta, s = this.shape;
+			if(!s.text || s.text.length == 0){
+				return;
+			}
+			// text align
+			ta = s.align === 'middle' ? 'center' : s.align;
+			ctx.textAlign = ta;
+			if(this.canvasFont){
+				ctx.font = this.canvasFont;
+			}
+			if(this.canvasFill){
+				ctx.fillText(s.text, s.x, s.y);
+			}
+			if(this.strokeStyle){
+				ctx.beginPath(); // fix bug in FF3.6. Fixed in FF4b8
+				ctx.strokeText(s.text, s.x, s.y);
+				ctx.closePath();
+			}
 		}
 	});
-	modifyMethod(g.Text, "setFont");
+	modifyMethod(canvas.Text, "setFont");
+	
+	// the next test is from https://github.com/phiggins42/has.js
+	if(win.global.CanvasRenderingContext2D){
+		// need to doublecheck canvas is supported since module can be loaded if building layers (ticket 14288)
+		var ctx2d = win.doc.createElement("canvas").getContext("2d");
+		if(ctx2d && typeof ctx2d.fillText != "function"){
+			canvas.Text.extend({
+				getTextWidth: function(){
+					return 0;
+				},
+				_renderShape: function(){
+				}
+			});
+		}
+	}
+	
 
 	var pathRenderers = {
-		M: "_moveToA", m: "_moveToR",
-		L: "_lineToA", l: "_lineToR",
-		H: "_hLineToA", h: "_hLineToR",
-		V: "_vLineToA", v: "_vLineToR",
-		C: "_curveToA", c: "_curveToR",
-		S: "_smoothCurveToA", s: "_smoothCurveToR",
-		Q: "_qCurveToA", q: "_qCurveToR",
-		T: "_qSmoothCurveToA", t: "_qSmoothCurveToR",
-		A: "_arcTo", a: "_arcTo",
-		Z: "_closePath", z: "_closePath"
-	};
+			M: "_moveToA", m: "_moveToR",
+			L: "_lineToA", l: "_lineToR",
+			H: "_hLineToA", h: "_hLineToR",
+			V: "_vLineToA", v: "_vLineToR",
+			C: "_curveToA", c: "_curveToR",
+			S: "_smoothCurveToA", s: "_smoothCurveToR",
+			Q: "_qCurveToA", q: "_qCurveToR",
+			T: "_qSmoothCurveToA", t: "_qSmoothCurveToR",
+			A: "_arcTo", a: "_arcTo",
+			Z: "_closePath", z: "_closePath"
+		};
 
-	dojo.declare("dojox.gfx.Path", g.path.Path, {
+	declare("dojox.gfx.canvas.Path", [canvas.Shape, pathLib.Path], {
 		// summary: a path shape (Canvas)
 		constructor: function(){
 			this.lastControl = {};
 		},
 		setShape: function(){
 			this.canvasPath = [];
-			return g.Path.superclass.setShape.apply(this, arguments);
+			return this.inherited(arguments);
 		},
 		_updateWithSegment: function(segment){
-			var last = d.clone(this.last);
+			var last = lang.clone(this.last);
 			this[pathRenderers[segment.action]](this.canvasPath, segment.action, segment.args);
 			this.last = last;
-			g.Path.superclass._updateWithSegment.apply(this, arguments);
+			this.inherited(arguments);
 		},
 		_renderShape: function(/* Object */ ctx){
 			var r = this.canvasPath;
@@ -518,7 +643,7 @@ dojo.experimental("dojox.gfx.canvas");
 					args[i + 3] ? 1 : 0, args[i + 4] ? 1 : 0,
 					x1, y1
 				);
-				d.forEach(arcs, function(p){
+				arr.forEach(arcs, function(p){
 					result.push("bezierCurveTo", p);
 				});
 				this.last.x = x1;
@@ -531,20 +656,26 @@ dojo.experimental("dojox.gfx.canvas");
 			this.lastControl = {};
 		}
 	});
-	d.forEach(["moveTo", "lineTo", "hLineTo", "vLineTo", "curveTo",
+	arr.forEach(["moveTo", "lineTo", "hLineTo", "vLineTo", "curveTo",
 		"smoothCurveTo", "qCurveTo", "qSmoothCurveTo", "arcTo", "closePath"],
-		function(method){ modifyMethod(g.Path, method); }
+		function(method){ modifyMethod(canvas.Path, method); }
 	);
 
-	dojo.declare("dojox.gfx.TextPath", g.path.TextPath, {
+	declare("dojox.gfx.canvas.TextPath", [canvas.Shape, pathLib.TextPath], {
 		// summary: a text shape (Canvas)
 		_renderShape: function(/* Object */ ctx){
 			var s = this.shape;
 			// nothing for the moment
+		},
+		_setText: function(){
+			// not implemented
+		},
+		_setFont: function(){
+			// not implemented
 		}
 	});
 
-	dojo.declare("dojox.gfx.Surface", gs.Surface, {
+	declare("dojox.gfx.canvas.Surface", gs.Surface, {
 		// summary: a surface object to be used for drawings (Canvas)
 		constructor: function(){
 			gs.Container._init.call(this);
@@ -558,9 +689,17 @@ dojo.experimental("dojox.gfx.canvas");
 			this.width  = g.normalizedLength(width);	// in pixels
 			this.height = g.normalizedLength(height);	// in pixels
 			if(!this.rawNode) return this;
-			this.rawNode.width = width;
-			this.rawNode.height = height;
-			this.makeDirty();
+			var dirty = false;
+			if (this.rawNode.width != this.width){
+				this.rawNode.width = this.width;
+				dirty = true;
+			}
+			if (this.rawNode.height != this.height){
+				this.rawNode.height = this.height;
+				dirty = true;
+			}
+			if (dirty)
+				this.makeDirty();
 			return this;	// self
 		},
 		getDimensions: function(){
@@ -585,7 +724,7 @@ dojo.experimental("dojox.gfx.canvas");
 		makeDirty: function(){
 			// summary: internal method, which is called when we may need to redraw
 			if(!this.pendingImagesCount && !("pendingRender" in this)){
-				this.pendingRender = setTimeout(d.hitch(this, this._render), 0);
+				this.pendingRender = setTimeout(lang.hitch(this, this._render), 0);
 			}
 		},
 		downloadImage: function(img, url){
@@ -595,7 +734,7 @@ dojo.experimental("dojox.gfx.canvas");
 			//		the image object
 			// url: String:
 			//		the url of the image
-			var handler = d.hitch(this, this.onImageLoad);
+			var handler = lang.hitch(this, this.onImageLoad);
 			if(!this.pendingImageCount++ && "pendingRender" in this){
 				clearTimeout(this.pendingRender);
 				delete this.pendingRender;
@@ -615,14 +754,14 @@ dojo.experimental("dojox.gfx.canvas");
 		disconnect:		function(){}
 	});
 
-	g.createSurface = function(parentNode, width, height){
+	canvas.createSurface = function(parentNode, width, height){
 		// summary: creates a surface (Canvas)
 		// parentNode: Node: a parent node
 		// width: String: width of surface, e.g., "100px"
 		// height: String: height of surface, e.g., "100px"
 
 		if(!width && !height){
-			var pos = d.position(parentNode);
+			var pos = domGeom.position(parentNode);
 			width  = width  || pos.w;
 			height = height || pos.h;
 		}
@@ -633,12 +772,12 @@ dojo.experimental("dojox.gfx.canvas");
 			height = height + "px";
 		}
 
-		var s = new g.Surface(),
-			p = d.byId(parentNode),
+		var s = new canvas.Surface(),
+			p = dom.byId(parentNode),
 			c = p.ownerDocument.createElement("canvas");
 
-		c.width  = dojox.gfx.normalizedLength(width);	// in pixels
-		c.height = dojox.gfx.normalizedLength(height);	// in pixels
+		c.width  = g.normalizedLength(width);	// in pixels
+		c.height = g.normalizedLength(height);	// in pixels
 
 		p.appendChild(c);
 		s.rawNode = c;
@@ -672,7 +811,7 @@ dojo.experimental("dojox.gfx.canvas");
 		}
 	};
 
-	d.mixin(gs.Creator, {
+	var Creator = {
 		// summary: Canvas shape creators
 		createObject: function(shapeType, rawShape) {
 			// summary: creates an instance of the passed shapeType class
@@ -685,11 +824,20 @@ dojo.experimental("dojox.gfx.canvas");
 			this.add(shape);
 			return shape;	// dojox.gfx.Shape
 		}
-	});
+	};
 
-	d.extend(g.Group, Container);
-	d.extend(g.Group, gs.Creator);
+	extend(canvas.Group, Container);
+	extend(canvas.Group, gs.Creator);
+	extend(canvas.Group, Creator);
 
-	d.extend(g.Surface, Container);
-	d.extend(g.Surface, gs.Creator);
-})();
+	extend(canvas.Surface, Container);
+	extend(canvas.Surface, gs.Creator);
+	extend(canvas.Surface, Creator);
+	
+	// no event support -> nothing to fix. 
+	canvas.fixTarget = function(event, gfxElement){
+		return true;
+	};
+	 
+	return canvas;
+});

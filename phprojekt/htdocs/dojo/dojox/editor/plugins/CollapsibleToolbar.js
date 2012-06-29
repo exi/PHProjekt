@@ -1,12 +1,19 @@
-dojo.provide("dojox.editor.plugins.CollapsibleToolbar");
+define([
+	"dojo",
+	"dijit",
+	"dojox",
+	"dijit/_Widget",
+	"dijit/_TemplatedMixin",
+	"dijit/_editor/_Plugin",
+	"dijit/form/Button",
+	"dijit/focus",
+	"dojo/_base/connect",
+	"dojo/_base/declare",
+	"dojo/i18n",
+	"dojo/i18n!dojox/editor/plugins/nls/CollapsibleToolbar"
+], function(dojo, dijit, dojox) {
 
-dojo.require("dijit._Widget")
-dojo.require("dijit._Templated");
-dojo.require("dijit._editor._Plugin");
-
-dojo.requireLocalization("dojox.editor.plugins", "CollapsibleToolbar");
-
-dojo.declare("dojox.editor.plugins._CollapsibleToolbarButton", [dijit._Widget, dijit._Templated], {
+dojo.declare("dojox.editor.plugins._CollapsibleToolbarButton", [dijit._Widget, dijit._TemplatedMixin], {
 	// summary:
 	//		Simple internal widget for representing a clickable button for expand/collapse
 	//		with A11Y support.
@@ -61,7 +68,7 @@ dojo.declare("dojox.editor.plugins.CollapsibleToolbar",dijit._editor._Plugin,{
 	_constructContainer: function(){
 		// summary:
 		//		Internal function to construct a wrapper for the toolbar/header that allows
-		//		it to expand and collapse.  It effectively builds a containing table, 
+		//		it to expand and collapse.  It effectively builds a containing table,
 		//		which handles the layout nicely and gets BIDI support by default.
 		// tags:
 		//		private
@@ -171,4 +178,8 @@ dojo.subscribe(dijit._scopeName + ".Editor.getPlugin",null,function(o){
 	if(name === "collapsibletoolbar"){
 		o.plugin = new dojox.editor.plugins.CollapsibleToolbar({});
 	}
+});
+
+return dojox.editor.plugins.CollapsibleToolbar;
+
 });

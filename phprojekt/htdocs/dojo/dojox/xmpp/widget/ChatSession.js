@@ -1,9 +1,13 @@
 dojo.provide("dojox.xmpp.widget.ChatSession");
+
+dojo.require("dijit.layout.LayoutContainer");
+dojo.require("dijit._Templated");
+
 dojo.declare("dojox.xmpp.widget.ChatSession",
 	[dijit.layout.LayoutContainer, dijit._Templated],
 	{
 			templateString: dojo.cache("dojox.xmpp.widget", "templates/ChatSession.html"),
-			enableSubWidgets: true, 
+			enableSubWidgets: true,
 			widgetsInTemplate: true,
 			
 			widgetType: "ChatSession",

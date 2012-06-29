@@ -1,7 +1,19 @@
+<!--[if IE 7]>
+<!DOCTYPE>
+<html lang="en">
+	<head>
+<![endif]-->
+<!--[if IE 8]>
+<!DOCTYPE>
+<html lang="en">
+    <head>
+           <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7"/>
+<![endif]-->
+<![if gte IE 9]>
 <!DOCTYPE HTML>
-<html>
-<head>
-    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
+<html lang="en">
+	<head>
+<![endif]>
 	<title>Chart 2D</title>
 	<style type="text/css">
 		@import "../../../dojo/resources/dojo.css";
@@ -9,16 +21,12 @@
 	</style>
 	<script type="text/javascript" src="../../../dojo/dojo.js" 
 		djConfig="isDebug: true"></script>
-	<!--
-	<script type="text/javascript" src="../../lang/functional.js"></script>
-	<script type="text/javascript" src="../Theme.js"></script>
-	<script type="text/javascript" src="../scaler/linear.js"></script>
-	<script type="text/javascript" src="../axis2d/Default.js"></script>
-	<script type="text/javascript" src="../Chart2D.js"></script>
-	-->
 	<script type="text/javascript">
 
-		dojo.require("dojox.charting.Chart2D");
+        dojo.require("dojox.charting.Chart");
+        dojo.require("dojox.charting.axis2d.Default");
+        dojo.require("dojox.charting.plot2d.Areas");
+        dojo.require("dojox.charting.plot2d.Grid");
 		dojo.require("dojox.charting.themes.PlotKit.orange");
 		dojo.require("dojox.charting.themes.Tufte");
 
@@ -41,7 +49,7 @@
 			seriesC = makeSeries(limit, 2);
 
 		var makeObjects = function(){
-			chart = new dojox.charting.Chart2D("test");
+			chart = new dojox.charting.Chart("test");
 			chart.setTheme(dojox.charting.themes.Tufte);
 			chart.addAxis("x", {
 				fixLower: "minor", 

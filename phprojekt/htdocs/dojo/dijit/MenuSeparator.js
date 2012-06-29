@@ -1,19 +1,32 @@
-dojo.provide("dijit.MenuSeparator");
+define([
+	"dojo/_base/declare", // declare
+	"dojo/dom", // dom.setSelectable
+	"./_WidgetBase",
+	"./_TemplatedMixin",
+	"./_Contained",
+	"dojo/text!./templates/MenuSeparator.html"
+], function(declare, dom, _WidgetBase, _TemplatedMixin, _Contained, template){
 
-dojo.require("dijit._Widget");
-dojo.require("dijit._Templated");
-dojo.require("dijit._Contained");
+/*=====
+	var _WidgetBase = dijit._WidgetBase;
+	var _TemplatedMixin = dijit._TemplatedMixin;
+	var _Contained = dijit._Contained;
+=====*/
 
-dojo.declare("dijit.MenuSeparator",
-		[dijit._Widget, dijit._Templated, dijit._Contained],
-		{
+	// module:
+	//		dijit/MenuSeparator
+	// summary:
+	//		A line between two menu items
+
+	return declare("dijit.MenuSeparator", [_WidgetBase, _TemplatedMixin, _Contained], {
 		// summary:
 		//		A line between two menu items
 
-		templateString: dojo.cache("dijit", "templates/MenuSeparator.html"),
+		templateString: template,
 
-		postCreate: function(){
-			dojo.setSelectable(this.domNode, false);
+		buildRendering: function(){
+			this.inherited(arguments);
+			dom.setSelectable(this.domNode, false);
 		},
 
 		isFocusable: function(){
@@ -25,4 +38,4 @@ dojo.declare("dijit.MenuSeparator",
 			return false; // Boolean
 		}
 	});
-
+});

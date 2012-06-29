@@ -10,9 +10,9 @@
 		dijit.form.ComboBox (partial)
  ****/
 
-.nihilo .dijitInputContainer INPUT,
+.nihilo .dijitInputContainer input,
 .nihilo .dijitTextBox {
-	margin: 0em 0.1em;
+	margin: 0 0.1em;
 }
 
 .nihilo .dijitTextBox,

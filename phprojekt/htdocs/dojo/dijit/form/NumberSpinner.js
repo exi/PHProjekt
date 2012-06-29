@@ -1,11 +1,23 @@
-dojo.provide("dijit.form.NumberSpinner");
+define([
+	"dojo/_base/declare", // declare
+	"dojo/_base/event", // event.stop
+	"dojo/keys", // keys.END keys.HOME
+	"./_Spinner",
+	"./NumberTextBox"
+], function(declare, event, keys, _Spinner, NumberTextBox){
 
-dojo.require("dijit.form._Spinner");
-dojo.require("dijit.form.NumberTextBox");
+/*=====
+	var _Spinner = dijit.form._Spinner;
+	var NumberTextBox = dijit.form.NumberTextBox;
+=====*/
 
-dojo.declare("dijit.form.NumberSpinner",
-	[dijit.form._Spinner, dijit.form.NumberTextBoxMixin],
-	{
+// module:
+//		dijit/form/NumberSpinner
+// summary:
+//		Extends NumberTextBox to add up/down arrows and pageup/pagedown for incremental change to the value
+
+
+return declare("dijit.form.NumberSpinner", [_Spinner, NumberTextBox.Mixin], {
 	// summary:
 	//		Extends NumberTextBox to add up/down arrows and pageup/pagedown for incremental change to the value
 	//
@@ -18,7 +30,7 @@ dojo.declare("dijit.form.NumberSpinner",
 	// example:
 	//	| new dijit.form.NumberSpinner({ constraints:{ max:300, min:100 }}, "someInput");
 
-	adjust: function(/* Object */val, /* Number*/delta){
+	adjust: function(/*Object*/ val, /*Number*/ delta){
 		// summary:
 		//		Change Number val by the given amount
 		// tags:
@@ -47,14 +59,16 @@ dojo.declare("dijit.form.NumberSpinner",
 	},
 
 	_onKeyPress: function(e){
-		if((e.charOrCode == dojo.keys.HOME || e.charOrCode == dojo.keys.END) && !(e.ctrlKey || e.altKey || e.metaKey)
+		if((e.charOrCode == keys.HOME || e.charOrCode == keys.END) && !(e.ctrlKey || e.altKey || e.metaKey)
 		&& typeof this.get('value') != 'undefined' /* gibberish, so HOME and END are default editing keys*/){
-			var value = this.constraints[(e.charOrCode == dojo.keys.HOME ? "min" : "max")];
+			var value = this.constraints[(e.charOrCode == keys.HOME ? "min" : "max")];
 			if(typeof value == "number"){
 				this._setValueAttr(value, false);
 			}
 			// eat home or end key whether we change the value or not
-			dojo.stopEvent(e);
+			event.stop(e);
 		}
 	}
+});
+
 });

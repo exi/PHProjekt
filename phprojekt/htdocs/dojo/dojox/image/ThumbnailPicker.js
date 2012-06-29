@@ -1,24 +1,25 @@
 dojo.provide("dojox.image.ThumbnailPicker");
 dojo.experimental("dojox.image.ThumbnailPicker");
 //
-// dojox.image.ThumbnailPicker courtesy Shane O Sullivan, licensed under a Dojo CLA 
-// @author  Copyright 2007 Shane O Sullivan (shaneosullivan1@gmail.com)
+// dojox.image.ThumbnailPicker courtesy Shane O Sullivan, licensed under a Dojo CLA
 //
 // For a sample usage, see http://www.skynet.ie/~sos/photos.php
 //
 //	document topics.
 
 dojo.require("dojox.fx.scroll"); // is optional, but don't want to dojo[require] it
-dojo.require("dojo.fx.easing"); 
+dojo.require("dojo.fx.easing");
 
 dojo.require("dojo.fx");
 dojo.require("dijit._Widget");
 dojo.require("dijit._Templated");
 
+// FIXME: use CSS for size, thumbHeight, and thumbWidth
+
 dojo.declare("dojox.image.ThumbnailPicker",
 	[dijit._Widget, dijit._Templated],
 	{
-	// summary: A scrolling Thumbnail Picker widget 
+	// summary: A scrolling Thumbnail Picker widget
 	//
 	// imageStore: Object
 	// A data store that implements the dojo.data Read API.
@@ -30,15 +31,15 @@ dojo.declare("dojox.image.ThumbnailPicker",
 
 	// size: Number
 	// Width or height in pixels, depending if horizontal or vertical.
-	size: 500, //FIXME: use CSS?
+	size: 500, 
 
 	// thumbHeight: Number
 	// Default height of a thumbnail image
-	thumbHeight: 75, // FIXME: use CSS?
+	thumbHeight: 75, 
 
 	// thumbWidth: Number
 	// Default width of an image
-	thumbWidth: 100, // FIXME: use CSS?
+	thumbWidth: 100, 
 
 	// useLoadNotifier: Boolean
 	// Setting useLoadNotifier to true makes a colored DIV appear under each
@@ -78,7 +79,7 @@ dojo.declare("dojox.image.ThumbnailPicker",
 	
 	// imageThumbAttr: String
 	// The attribute name for accessing the thumbnail image url from the data store
-	imageThumbAttr: "imageUrlThumb",	
+	imageThumbAttr: "imageUrlThumb",
 	
 	// imageLargeAttr: String
 	// The attribute name for accessing the large image url from the data store
@@ -92,7 +93,7 @@ dojo.declare("dojox.image.ThumbnailPicker",
 	// The attribute name for accessing the title from the data store
 	titleAttr: "title",
 	
-	templateString: dojo.cache("dojox.image", "resources/ThumbnailPicker.html"), 
+	templateString: dojo.cache("dojox.image", "resources/ThumbnailPicker.html"),
 	
 	// thumbs: Array
 	// Stores the image nodes for the thumbnails.
@@ -113,7 +114,7 @@ dojo.declare("dojox.image.ThumbnailPicker",
 
 	postCreate: function(){
 		// summary:
-		//		Initializes styles and listeners		
+		//		Initializes styles and listeners
 		this.widgetid = this.id;
 		this.inherited(arguments);
 		this.pageSize = Number(this.pageSize);
@@ -155,12 +156,12 @@ dojo.declare("dojox.image.ThumbnailPicker",
 
 	init: function(){
 		// summary:
-		//		Creates DOM nodes for thumbnail images and initializes their listeners 
+		//		Creates DOM nodes for thumbnail images and initializes their listeners
 		if(this.isInitialized) {return false;}
 	
 		var classExt = this.isHorizontal ? "Horiz" : "Vert";
 	
-		// FIXME: can we setup a listener around the whole element and determine based on e.target?	  
+		// FIXME: can we setup a listener around the whole element and determine based on e.target?
 		dojo.addClass(this.navPrev, "prev" + classExt);
 		dojo.addClass(this.navNext, "next" + classExt);
 		dojo.addClass(this.thumbsNode, "thumb"+classExt);
@@ -189,7 +190,7 @@ dojo.declare("dojox.image.ThumbnailPicker",
 	},
 
 	getClickTopicName: function(){
-		// summary: 
+		// summary:
 		//		Returns the name of the dojo topic that can be
 		//		subscribed to in order to receive notifications on
 		//		which thumbnail was selected.
@@ -232,7 +233,7 @@ dojo.declare("dojox.image.ThumbnailPicker",
 	
 		if(paramNames){
 			dojo.forEach(["imageThumbAttr", "imageLargeAttr", "linkAttr", "titleAttr"], function(attrName){
-				if(paramNames[attrName]){ this[attrName] = paramNames[attrName]; }	
+				if(paramNames[attrName]){ this[attrName] = paramNames[attrName]; }
 			}, this);
 		}
 		
@@ -268,7 +269,7 @@ dojo.declare("dojox.image.ThumbnailPicker",
 		var scrollAttr = this.isHorizontal ? "scrollLeft" : "scrollTop";
 		var offset = img[pos] - this.thumbsNode[pos];
 		return (offset >= this.thumbScroller[scrollAttr]
-			&& offset + img[size] <= this.thumbScroller[scrollAttr] + this._scrollerSize);	
+			&& offset + img[size] <= this.thumbScroller[scrollAttr] + this._scrollerSize);
 	},
 	
 	resize: function(dim){
@@ -348,7 +349,7 @@ dojo.declare("dojox.image.ThumbnailPicker",
 	
 		this._thumbIndex = index;
 	
-		//If we have not already requested the data from the store, do so. 
+		//If we have not already requested the data from the store, do so.
 		if(this.thumbsNode.offsetWidth - img.offsetLeft < (this._scrollerSize * 2)){
 			this._loadNextPage();
 		}
@@ -397,11 +398,11 @@ dojo.declare("dojox.image.ThumbnailPicker",
 				this.thumbScroller.scrollTop = top;
 			}
 			this._checkLoad(img, index);
-		}	
+		}
 	},
 	
 	markImageLoaded: function(index){
-		// summary: 
+		// summary:
 		//		Changes a visual cue to show the image is loaded
 		// description:
 		//		If 'useLoadNotifier' is set to true, then a visual cue is
@@ -435,7 +436,7 @@ dojo.declare("dojox.image.ThumbnailPicker",
 		
 		var store = this.imageStore;
 		
-		//Define the function to call when the items have been 
+		//Define the function to call when the items have been
 		//returned from the data store.
 		var complete = function(items, request){
 			if(store != this.imageStore){
@@ -455,16 +456,16 @@ dojo.declare("dojox.image.ThumbnailPicker",
 				});
 				loadNext();
 
-				//Show or hide the navigation arrows on the thumbnails, 
+				//Show or hide the navigation arrows on the thumbnails,
 				//depending on whether or not the widget is at the start,
-				//end, or middle of the list of images. 
+				//end, or middle of the list of images.
 				this._updateNavControls();
 			}else{
 				this._loadInProgress = false;
 			}
 		};
 	
-		//Define the function to call if the store reports an error. 
+		//Define the function to call if the store reports an error.
 		var error = function(){
 			this._loadInProgress = false;
 			console.log("Error getting items");
@@ -474,11 +475,11 @@ dojo.declare("dojox.image.ThumbnailPicker",
 		this.request.onError = dojo.hitch(this, error);
 	
 		//Increment the start parameter. This is the dojo.data API's
-		//version of paging. 
+		//version of paging.
 		this.request.start = start;
 		this._noImages = false;
 		
-		//Execute the request for data. 
+		//Execute the request for data.
 		this.imageStore.fetch(this.request);
 	
 	},
@@ -546,7 +547,7 @@ dojo.declare("dojox.image.ThumbnailPicker",
 			dojo.publish(this.getClickTopicName(),	[{
 				index: evt.target._index,
 				data: evt.target._data,
-				url: img.getAttribute("src"), 
+				url: img.getAttribute("src"),
 				largeUrl: this.imageStore.getValue(data,this.imageLargeAttr),
 				title: this.imageStore.getValue(data,this.titleAttr),
 				link: this.imageStore.getValue(data,this.linkAttr)
@@ -562,7 +563,7 @@ dojo.declare("dojox.image.ThumbnailPicker",
 	},
 
 	_updateNavControls: function(){
-		// summary: 
+		// summary:
 		//		Updates the navigation controls to hide/show them when at
 		//		the first or last images.
 		var cells = [];

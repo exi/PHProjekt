@@ -1,18 +1,34 @@
-dojo.provide("dijit.robotx");
-dojo.require("dijit.robot");
-dojo.require("dojo.robotx");
-dojo.experimental("dijit.robotx");
-(function(){
-var __updateDocument = doh.robot._updateDocument;
+define([
+	"dojo/_base/kernel", // dojo.experimental lang.mixin
+	".",
+	"dojo/_base/lang", // dojo.experimental lang.mixin
+	"./robot",
+	"dojo/robotx",
+	"dojo/_base/window" // dojo.global
+], function(dojo, dijit_, lang){
 
-dojo.mixin(doh.robot,{
-	_updateDocument: function(){
-		__updateDocument();
-		var win = dojo.global;
-		if(win["dijit"]){
-			dijit = win.dijit;
+	// module:
+	//		dijit/robotx
+	// summary:
+	//		Code needed by robot test harness
+
+
+	//WARNING: This module depends on GLOBAL dijit being set for v1.5 code; therefore the lexical variable that
+	//references "dijit" has been renamed to "dijit_"
+
+	dojo.experimental("dijit.robotx");
+
+	var __updateDocument = doh.robot._updateDocument;
+
+	lang.mixin(doh.robot,{
+		_updateDocument: function(){
+			__updateDocument();
+			var win = dojo.global;
+			if(win["dijit"]){
+				window.dijit = win.dijit; // window reference needed for IE
+			}
 		}
-	}
-});
+	});
 
-})();
+	return dijit_;
+});

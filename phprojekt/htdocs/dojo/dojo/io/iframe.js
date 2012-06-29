@@ -1,4 +1,10 @@
-dojo.provide("dojo.io.iframe");
+define(["../main", "require"], function(dojo, require) {
+	// module:
+	//		dojo/io/iframe
+	// summary:
+	//		TODOC
+
+dojo.getObject("io", true, dojo);
 
 /*=====
 dojo.declare("dojo.io.iframe.__ioArgs", dojo.__IoArgs, {
@@ -40,9 +46,9 @@ dojo.declare("dojo.io.iframe.__ioArgs", dojo.__IoArgs, {
 =====*/
 
 dojo.io.iframe = {
-	// summary: 
+	// summary:
 	//		Sends an Ajax I/O call using and Iframe (for instance, to upload files)
-	
+
 	create: function(/*String*/fname, /*String*/onloadstr, /*String?*/uri){
 		//	summary:
 		//		Creates a hidden iframe in the page. Used mostly for IO
@@ -60,7 +66,6 @@ dojo.io.iframe = {
 		//		used.
 		if(window[fname]){ return window[fname]; }
 		if(window.frames[fname]){ return window.frames[fname]; }
-		var cframe = null;
 		var turi = uri;
 		if(!turi){
 			if(dojo.config["useXDomain"] && !dojo.config["dojoBlankHtmlUrl"]){
@@ -68,32 +73,14 @@ dojo.io.iframe = {
 					+ " please save dojo/resources/blank.html to your domain and set djConfig.dojoBlankHtmlUrl"
 					+ " to the path on your domain to blank.html");
 			}
-			turi = (dojo.config["dojoBlankHtmlUrl"]||dojo.moduleUrl("dojo", "resources/blank.html"));
+			turi = (dojo.config["dojoBlankHtmlUrl"]||require.toUrl("../resources/blank.html"));
 		}
-		var ifrstr = dojo.isIE ? '<iframe name="'+fname+'" src="'+turi+'" onload="'+onloadstr+'">' : 'iframe';
-		cframe = dojo.doc.createElement(ifrstr);
-		with(cframe){
-			name = fname;
-			setAttribute("name", fname);
-			id = fname;
-		}
-		dojo.body().appendChild(cframe);
-		window[fname] = cframe;
-	
-		with(cframe.style){
-			if(!(dojo.isSafari < 3)){
-				//We can't change the src in Safari 2.0.3 if absolute position. Bizarro.
-				position = "absolute";
-			}
-			left = top = "1px";
-			height = width = "1px";
-			visibility = "hidden";
-		}
+		var cframe = dojo.place(
+			'<iframe id="'+fname+'" name="'+fname+'" src="'+turi+'" onload="'+onloadstr+
+			'" style="position: absolute; left: 1px; top: 1px; height: 1px; width: 1px; visibility: hidden">',
+		dojo.body());
 
-		if(!dojo.isIE){
-			this.setSrc(cframe, turi, true);
-			cframe.onload = new Function(onloadstr);
-		}
+		window[fname] = cframe;
 
 		return cframe;
 	},
@@ -113,37 +100,33 @@ dojo.io.iframe = {
 			}else{
 				// Fun with DOM 0 incompatibilities!
 				var idoc;
-				//WebKit > 521 corresponds with Safari 3, which started with 522 WebKit version.
-				if(dojo.isIE || dojo.isWebKit > 521){
+				if(dojo.isIE || dojo.isWebKit){
 					idoc = iframe.contentWindow.document;
-				}else if(dojo.isSafari){
-					idoc = iframe.document;
 				}else{ //  if(d.isMozilla){
 					idoc = iframe.contentWindow;
 				}
-	
+
 				//For Safari (at least 2.0.3) and Opera, if the iframe
 				//has just been created but it doesn't have content
 				//yet, then iframe.document may be null. In that case,
 				//use iframe.location and return.
 				if(!idoc){
 					iframe.location = src;
-					return;
 				}else{
 					idoc.location.replace(src);
 				}
 			}
-		}catch(e){ 
-			console.log("dojo.io.iframe.setSrc: ", e); 
+		}catch(e){
+			console.log("dojo.io.iframe.setSrc: ", e);
 		}
 	},
 
 	doc: function(/*DOMNode*/iframeNode){
 		//summary: Returns the document object associated with the iframe DOM Node argument.
-		var doc = iframeNode.contentDocument || // W3
+		return iframeNode.contentDocument || // W3
 			(
 				(
-					(iframeNode.name) && (iframeNode.document) && 
+					(iframeNode.name) && (iframeNode.document) &&
 					(dojo.doc.getElementsByTagName("iframe")[iframeNode.name].contentWindow) &&
 					(dojo.doc.getElementsByTagName("iframe")[iframeNode.name].contentWindow.document)
 				)
@@ -152,11 +135,10 @@ dojo.io.iframe = {
 				(iframeNode.name)&&(dojo.doc.frames[iframeNode.name])&&
 				(dojo.doc.frames[iframeNode.name].document)
 			) || null;
-		return doc;
 	},
 
 	send: function(/*dojo.io.iframe.__ioArgs*/args){
-		//summary: 
+		//summary:
 		//		Function that sends the request to the server.
 		//		This transport can only process one send() request at a time, so if send() is called
 		//multiple times, it will queue up the calls and only process one at a time.
@@ -186,8 +168,8 @@ dojo.io.iframe = {
 					if(handleAs != "html"){
 						if(handleAs == "xml"){
 							//	FF, Saf 3+ and Opera all seem to be fine with ifd being xml.  We have to
-							//	do it manually for IE.  Refs #6334.
-							if(dojo.isIE){
+							//	do it manually for IE6-8.  Refs #6334.
+							if(dojo.isIE < 9 || (dojo.isIE && dojo.isQuirks)){
 								dojo.query("a", dii._frame.contentWindow.document.documentElement).orphan();
 								var xmlText=(dii._frame.contentWindow.document).documentElement.innerText;
 								xmlText=xmlText.replace(/>\s+</g, "><");
@@ -209,7 +191,7 @@ dojo.io.iframe = {
 				}catch(e){
 					value = e;
 				}finally{
-					ioArgs._callNext();				
+					ioArgs._callNext();
 				}
 				return value;
 			},
@@ -229,11 +211,11 @@ dojo.io.iframe = {
 				dojo.io.iframe._currentDfd = null;
 				dojo.io.iframe._fireNextRequest();
 			}
-		}
+		};
 
 		this._dfdQueue.push(dfd);
 		this._fireNextRequest();
-		
+
 		//Add it the IO watch queue, to get things like timeout support.
 		dojo._ioWatch(
 			dfd,
@@ -288,16 +270,7 @@ dojo.io.iframe = {
 					// if we have things in content, we need to add them to the form
 					// before submission
 					var pHandler = function(name, value) {
-						var tn;
-						if(dojo.isIE){
-							tn = dojo.doc.createElement("<input type='hidden' name='"+name+"'>");
-						}else{
-							tn = dojo.doc.createElement("input");
-							tn.type = "hidden";
-							tn.name = name;
-						}
-						tn.value = value;
-						fn.appendChild(tn);
+						dojo.create("input", {type: "hidden", name: name, value: value}, fn);
 						ioArgs._contentToClean.push(name);
 					};
 					for(var x in content){
@@ -316,7 +289,7 @@ dojo.io.iframe = {
 						}
 					}
 				}
-				//IE requires going through getAttributeNode instead of just getAttribute in some form cases, 
+				//IE requires going through getAttributeNode instead of just getAttribute in some form cases,
 				//so use it for all.  See #2844
 				var actnNode = fn.getAttributeNode("action");
 				var mthdNode = fn.getAttributeNode("method");
@@ -367,7 +340,7 @@ dojo.io.iframe = {
 		var ioArgs = dfd.ioArgs;
 		var args = ioArgs.args;
 		var fNode = dojo.byId(args.form);
-	
+
 		if(fNode){
 			// remove all the hidden content inputs
 			var toClean = ioArgs._contentToClean;
@@ -397,4 +370,7 @@ dojo.io.iframe = {
 
 		ioArgs._finished = true;
 	}
-}
+};
+
+return dojo.io.iframe;
+});

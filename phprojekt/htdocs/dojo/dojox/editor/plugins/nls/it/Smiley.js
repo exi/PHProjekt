@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	smiley: "Inserisci emoticon",
 	emoticonSmile: "sorriso",
@@ -5,8 +7,8 @@
 	emoticonWink: "occhiolino",
 	emoticonGrin: "ghigno",
 	emoticonCool: "figo",
-	emoticonAngry: "arrabbiato",  
-	emoticonHalf: "metà", 
+	emoticonAngry: "arrabbiato",
+	emoticonHalf: "metà",
 	emoticonEyebrow: "sopracciglia",
 	emoticonFrown: "triste",
 	emoticonShy: "timido",
@@ -15,8 +17,11 @@
 	emoticonTongue: "linguaccia",
 	emoticonIdea: "idea",
 	emoticonYes: "yes",
-	emoticonNo: "no",	
+	emoticonNo: "no",
 	emoticonAngel: "angelo",
-	emoticonCrying: "in lacrime"
+	emoticonCrying: "in lacrime",
+	emoticonHappy: "felice"
 })
 
+//end v1.x content
+);

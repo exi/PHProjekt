@@ -1,7 +1,13 @@
-dojo.provide("dijit._base.window");
+define([
+	"dojo/window", // windowUtils.get
+	".."	// export symbol to dijit
+], function(windowUtils, dijit){
+	// module:
+	//		dijit/_base/window
+	// summary:
+	//		Back compatibility module, new code should use windowUtils directly instead of using this module.
 
-dojo.require("dojo.window");
-
-dijit.getDocumentWindow = function(doc){
-	return dojo.window.get(doc);
-};
+	dijit.getDocumentWindow = function(doc){
+		return windowUtils.get(doc);
+	};
+});

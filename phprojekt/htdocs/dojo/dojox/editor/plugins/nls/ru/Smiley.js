@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	smiley: "Вставить значок настроения",
 	emoticonSmile: "улыбка",
@@ -5,8 +7,8 @@
 	emoticonWink: "подмигивание",
 	emoticonGrin: "усмешка",
 	emoticonCool: "здорово",
-	emoticonAngry: "злость",  
-	emoticonHalf: "половина", 
+	emoticonAngry: "злость",
+	emoticonHalf: "половина",
 	emoticonEyebrow: "удивление",
 	emoticonFrown: "хмурый вид",
 	emoticonShy: "застенчивость",
@@ -15,8 +17,11 @@
 	emoticonTongue: "насмешка",
 	emoticonIdea: "есть идея",
 	emoticonYes: "да",
-	emoticonNo: "нет",	
+	emoticonNo: "нет",
 	emoticonAngel: "ангел",
-	emoticonCrying: "плачь"
+	emoticonCrying: "плачь",
+	emoticonHappy: "счастлив"
 })
 
+//end v1.x content
+);

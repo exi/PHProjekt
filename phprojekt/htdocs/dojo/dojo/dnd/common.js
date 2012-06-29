@@ -1,4 +1,10 @@
-dojo.provide("dojo.dnd.common");
+define(["../main"], function(dojo) {
+	// module:
+	//		dojo/dnd/common
+	// summary:
+	//		TODOC
+
+dojo.getObject("dnd", true, dojo);
 
 dojo.dnd.getCopyKeyState = dojo.isCopyKey;
 
@@ -24,3 +30,6 @@ dojo.dnd.isFormElement = function(/*Event*/ e){
 	}
 	return " button textarea input select option ".indexOf(" " + t.tagName.toLowerCase() + " ") >= 0;	// Boolean
 };
+
+return dojo.dnd;
+});

@@ -5,6 +5,7 @@
 	<title>Editor with all plugins enabled (more or less)</title>
 
 	<style type="text/css">
+		@import "../../../dojo/resources/dojo.css";
 		@import "../../../dijit/themes/claro/claro.css";
 		@import "../../../dojox/editor/plugins/resources/css/PageBreak.css";
 		@import "../../../dojox/editor/plugins/resources/css/ShowBlockNodes.css";
@@ -20,6 +21,10 @@
 		@import "../../../dojox/editor/plugins/resources/css/InsertAnchor.css";
 		@import "../../../dojox/editor/plugins/resources/editorPlugins.css";
 		@import "../../../dojox/editor/plugins/resources/css/StatusBar.css"; 
+		@import "../../../dojox/editor/plugins/resources/css/LocalImage.css";
+		@import "../../../dojox/editor/plugins/resources/css/AutoSave.css";
+		@import "../../../dojox/editor/plugins/resources/css/SafePaste.css";
+		@import "../../../dojox/editor/plugins/resources/css/Smiley.css";
 
 		body, html { width:100%; height:100%; margin:0; padding:0; overflow:hidden;}
 		#borderContainer { width:100%; height:100%; overflow:hidden;}
@@ -60,15 +65,23 @@
 		dojo.require("dojox.editor.plugins.TextColor");
 		dojo.require("dojox.editor.plugins.InsertAnchor");
 		dojo.require("dojox.editor.plugins.StatusBar");
+		dojo.require("dojox.editor.plugins.LocalImage");
+		dojo.require("dojox.editor.plugins.AutoUrlLink");
+		dojo.require("dojox.editor.plugins.ResizeTableColumn");
+		dojo.require("dojox.editor.plugins.AutoSave");
+		dojo.require("dojox.editor.plugins.SafePaste");
+		dojo.require("dojox.editor.plugins.Smiley");
 		
-		var plugins = ['collapsibletoolbar', 'newPage', 'save', {name: 'viewSource', stripScripts: true, stripComments: true}, 'showBlockNodes', '|',
+		
+		var plugins = ['collapsibletoolbar', 'newPage', 'save', 'autosave', {name: 'viewSource', stripScripts: true, stripComments: true}, 'showBlockNodes', '|',
 			{name: 'fullscreen', zIndex: 900}, 'preview', 'print', '|',
 			'selectAll', 'cut', 'copy', 'findreplace', 'paste','pastefromword', 'delete', 'undo', 'redo', '|',
 			'pageBreak', 'insertHorizontalRule', 'insertOrderedList', 'insertUnorderedList', 'indent', 'outdent', 'blockquote', '|',
 			'justifyLeft', 'justifyRight', 'justifyCenter', 'justifyFull', 'toggleDir', '|',
 			'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript',  'foreColor', 'hiliteColor', 'removeFormat', '||',
 			'fontName', 'fontSize', 'formatBlock', '||',
-			'insertEntity', 'createLink', 'unlink', 'insertanchor', 'insertImage',
+			'insertEntity', 'smiley', 'createLink', 'unlink', 'insertanchor', 'insertImage', 
+			{name: 'localImage', uploadable: true, uploadUrl: '../../form/tests/UploadFile.php', baseImageUrl: '../../form/tests/'},
 			{name: 'dojox.editor.plugins.TablePlugins', command: 'insertTable'},
 			{name: 'dojox.editor.plugins.TablePlugins', command: 'modifyTable'},
 			{name: 'dojox.editor.plugins.TablePlugins', command: 'InsertTableRowBefore'},
@@ -79,9 +92,11 @@
 			{name: 'dojox.editor.plugins.TablePlugins', command: 'deleteTableColumn'},
 			{name: 'dojox.editor.plugins.TablePlugins', command: 'colorTableCell'},
 			{name: 'dojox.editor.plugins.TablePlugins', command: 'tableContextMenu'},
+			{name: 'dojox.editor.plugins.TablePlugins', command: 'resizeTableColumn'},
 			{name: 'prettyprint', indentBy: "3", entityMap: dojox.html.entities.html.concat(dojox.html.entities.latin)},
 			{name: 'dijit._editor.plugins.EnterKeyHandling', blockNodeForEnter: "P"},
-			'normalizeindentoutdent', 'breadcrumb', {name: 'normalizestyle', mode: "css"}, {name: 'statusbar', resizer: false}
+			'autoUrlLink',
+			'normalizeindentoutdent', 'breadcrumb', {name: 'normalizestyle', mode: "css"}, {name: 'statusbar', resizer: false}, "safepaste"
 		];
 	</script>
 </head>

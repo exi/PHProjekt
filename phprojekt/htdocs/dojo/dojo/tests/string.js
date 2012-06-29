@@ -1,8 +1,6 @@
-dojo.provide("tests.string");
+define(["../main", "doh", "../string"], function(dojo, doh){
 
-dojo.require("dojo.string");
-
-tests.register("tests.string", 
+doh.register("tests.string",
 	[
 		function test_string_pad(t){
 			t.is("00001", dojo.string.pad("1", 5));
@@ -11,13 +9,13 @@ tests.register("tests.string",
 		},
 
 		function test_string_substitute(t){
-			t.is("File 'foo.html' is not found in directory '/temp'.", 
+			t.is("File 'foo.html' is not found in directory '/temp'.",
 				dojo.string.substitute(
-					"File '${0}' is not found in directory '${1}'.", 
+					"File '${0}' is not found in directory '${1}'.",
 					["foo.html","/temp"]
 				)
 			);
-			t.is("File 'foo.html' is not found in directory '/temp'.", 
+			t.is("File 'foo.html' is not found in directory '/temp'.",
 				dojo.string.substitute(
 					"File '${name}' is not found in directory '${info.dir}'.",
 					{
@@ -29,7 +27,7 @@ tests.register("tests.string",
 			// Verify that an error is thrown!
 			t.assertError(Error, dojo.string, "substitute", ["${x}", {y:1}]);
 		},
-		
+
 		function test_string_substitute_transform(t){
 			var getPrefix = function(str){
 				// try to figure out the type
@@ -38,14 +36,14 @@ tests.register("tests.string",
 					prefix = this.____prefix + prefix;
 				}
 				return prefix + " '" + str + "'";
-			}
+			};
 
 			var obj = {
 				____prefix: "...",
 				getPrefix: getPrefix
 			};
 
-			t.is("file 'foo.html' is not found in directory '/temp'.", 
+			t.is("file 'foo.html' is not found in directory '/temp'.",
 				dojo.string.substitute(
 					"${0} is not found in ${1}.",
 					["foo.html","/temp"],
@@ -53,7 +51,7 @@ tests.register("tests.string",
 				)
 			);
 
-			t.is("...file 'foo.html' is not found in ...directory '/temp'.", 
+			t.is("...file 'foo.html' is not found in ...directory '/temp'.",
 				dojo.string.substitute(
 					"${0} is not found in ${1}.",
 					["foo.html","/temp"],
@@ -63,7 +61,7 @@ tests.register("tests.string",
 		},
 
 		function test_string_substitute_formatter(t){
-			t.is("thinger -- howdy", 
+			t.is("thinger -- howdy",
 				dojo.string.substitute(
 					"${0:postfix}", ["thinger"], null, {
 						postfix: function(value, key){
@@ -73,7 +71,7 @@ tests.register("tests.string",
 				)
 			);
 		},
-		
+
 		function test_string_trim(t){
 			t.is("astoria", dojo.string.trim("   \f\n\r\t      astoria           "));
 			t.is("astoria", dojo.string.trim("astoria                            "));
@@ -81,7 +79,7 @@ tests.register("tests.string",
 			t.is("astoria", dojo.string.trim("astoria"));
 			t.is("a", dojo.string.trim("   a   "));
 		},
-		
+
 		function test_string_rep(t){
 			t.is("aaaaa", dojo.string.rep("a", 5));
 			t.is("abababab", dojo.string.rep("ab", 4));
@@ -90,3 +88,5 @@ tests.register("tests.string",
 		}
 	]
 );
+
+});

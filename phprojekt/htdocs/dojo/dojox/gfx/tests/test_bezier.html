@@ -7,19 +7,18 @@
 </style>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <script type="text/javascript" src="../../../dojo/dojo.js" djConfig="isDebug: true"></script>
-<script type="text/javascript" src="../_base.js"></script>
-<script type="text/javascript" src="../shape.js"></script>
-<script type="text/javascript" src="../path.js"></script>
-<script type="text/javascript" src="../arc.js"></script>
-<!--<script type="text/javascript" src="../vml.js"></script>-->
-<!--<script type="text/javascript" src="../svg.js"></script>-->
-<!--<script type="text/javascript" src="../canvas.js"></script>-->
-<!--<script type="text/javascript" src="../silverlight.js"></script>-->
 <script type="text/javascript">
 dojo.require("dojox.gfx");
+dojo.require("dojox.gfx.shape");
+dojo.require("dojox.gfx.path");
+dojo.require("dojox.gfx.arc");
 
-makeShapes = function(){
-	var surface = dojox.gfx.createSurface("test", 500, 300);
+createSurface = function(){
+	var surface = dojox.gfx.createSurface("test", 500, 500);
+	surface.whenLoaded(makeShapes);
+};
+
+makeShapes = function(surface){
 	var g = surface.createGroup();
 	
 	// create a reference ellipse
@@ -68,7 +67,7 @@ makeShapes = function(){
 	g.setTransform([dojox.gfx.matrix.translate(250, 150), dojox.gfx.matrix.rotateg(axisAngle)]);
 };
 
-dojo.addOnLoad(makeShapes);
+dojo.addOnLoad(createSurface);
 
 </script>
 </head>

@@ -1,4 +1,3 @@
-dojo.provide("ImageViewAssistant");
 dojo.require("dojox.mobile.app.SceneAssistant");
 
 dojo.declare("ImageViewAssistant", dojox.mobile.app.SceneAssistant, {
@@ -19,9 +18,9 @@ dojo.declare("ImageViewAssistant", dojox.mobile.app.SceneAssistant, {
     
 	var viewer = this.viewer = dijit.byId("imageView");
 	
-	this.viewer.attr("leftUrl", images[0]);
-	this.viewer.attr("centerUrl", images[1]);
-	this.viewer.attr("rightUrl", images[2]);
+	this.viewer.set("leftUrl", images[0]);
+	this.viewer.set("centerUrl", images[1]);
+	this.viewer.set("rightUrl", images[2]);
 	
 	dojo.connect(dijit.byId("decZoom"), "onClick", function(){
 		viewer.set("zoom", viewer.get("zoom") - 0.1);
@@ -74,10 +73,10 @@ dojo.declare("ImageViewAssistant", dojox.mobile.app.SceneAssistant, {
 		console.log("Index = " + index);
 		
 		if(index > 0){
-			viewer.attr("leftUrl", images[index - 1]);
+			viewer.set("leftUrl", images[index - 1]);
 		}
 		if(index < images.length - 1){
-			viewer.attr("rightUrl", images[index + 1]);
+			viewer.set("rightUrl", images[index + 1]);
 		}
 	});
 	

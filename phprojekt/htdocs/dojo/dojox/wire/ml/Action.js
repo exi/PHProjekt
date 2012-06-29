@@ -1,5 +1,4 @@
 dojo.provide("dojox.wire.ml.Action");
-dojo.provide("dojox.wire.ml.ActionFilter");
 
 dojo.require("dijit._Widget");
 dojo.require("dijit._Container");
@@ -161,7 +160,7 @@ dojo.declare("dojox.wire.ml.ActionFilter", dijit._Widget, {
 
 	filter: function(){
 		//	summary:
-		//		Check if a required property is specified.  Also, if provided, check to see 
+		//		Check if a required property is specified.  Also, if provided, check to see
 		//		if the required property contains a specific value.
 		//	description:
 		//		If a value is undefined for a property, specified with
@@ -177,7 +176,7 @@ dojo.declare("dojox.wire.ml.ActionFilter", dijit._Widget, {
 		//		If 'required' starts with "arguments", a property of
 		//		the method arguments are checked.
 		//	returns:
-		//		True if a required property is specified (and if requiredValue is specified, 
+		//		True if a required property is specified (and if requiredValue is specified,
 		//		that they match), otherwise false
 		if(this.required === ""){
 			return true; //Boolean

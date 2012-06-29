@@ -1,18 +1,18 @@
-dojo.provide("tests._base.connect");
+dojo.provide("dojo.tests._base.connect");
 
 hub = function(){
-}
+};
 
 failures = 0;
 bad = function(){
 	failures++;
-}
+};
 
 good = function(){
-}
+};
 
 // make 'iterations' connections to hub
-// roughly half of which will be to 'good' and 
+// roughly half of which will be to 'good' and
 // half to 'bad'
 // all connections to 'bad' are disconnected
 // test can then be performed on the values
@@ -35,8 +35,8 @@ markAndSweepTest = function(iterations){
 			rm.push(marked[m]);
 			marked.splice(m, 1);
 		}
-		marked = rm;				
-	} 
+		marked = rm;
+	}
 	for(var m=0; m<marked.length; m++){
 		dojo.disconnect(marked[m]);
 	}
@@ -45,7 +45,7 @@ markAndSweepTest = function(iterations){
 	hub();
 	// return number of disconnected functions that fired (should be 0)
 	return failures;
-}
+};
 
 markAndSweepSubscribersTest = function(iterations){
 	var topic = "hubbins";
@@ -66,8 +66,8 @@ markAndSweepSubscribersTest = function(iterations){
 			rm.push(marked[m]);
 			marked.splice(m, 1);
 		}
-		marked = rm;				
-	} 
+		marked = rm;
+	}
 	for(var m=0; m<marked.length; m++){
 		dojo.unsubscribe(marked[m]);
 	}
@@ -76,7 +76,7 @@ markAndSweepSubscribersTest = function(iterations){
 	dojo.publish(topic);
 	// return number of unsubscribed functions that fired (should be 0)
 	return failures;
-}
+};
 
 tests.register("tests._base.connect",
 	[
@@ -158,7 +158,7 @@ tests.register("tests._base.connect",
 			gFoo();
 			dojo.disconnect(link);
 			t.is(true, ok);
-			// verify disconnections 
+			// verify disconnections
 			gFoo();
 			t.is(false, ok);
 		},
@@ -167,12 +167,12 @@ tests.register("tests._base.connect",
 			var ok;
 			dojo.global["gFoo"] = function(){ok=false;};
 			dojo.global["gOk"] = function(){ok=true;};
-			// 2 arg shorthand for globals 
+			// 2 arg shorthand for globals
 			var link = dojo.connect("gFoo", "gOk");
 			gFoo();
 			dojo.disconnect(link);
 			t.is(true, ok);
-			// 2 arg shorthand for globals, alternate scoping 
+			// 2 arg shorthand for globals, alternate scoping
 			link = dojo.connect("gFoo", gOk);
 			gFoo();
 			dojo.disconnect(link);
@@ -186,7 +186,7 @@ tests.register("tests._base.connect",
 			foo.foo();
 			t.is(false, foo.ok);
 			t.is(true, bar.ok);
-		},		
+		},
 		function scopeTest2(t){
 			var foo = { ok: true, foo: function(){this.ok=false;} };
 			var bar = { ok: false, bar: function(){this.ok=true} };
@@ -195,6 +195,16 @@ tests.register("tests._base.connect",
 			foo.foo();
 			t.is(true, foo.ok);
 			t.is(false, bar.ok);
+		},
+		function pubsub(t){
+			var count = 0;
+			dojo.subscribe("/test/blah", function(first, second){
+				t.is("first", first);
+				t.is("second", second);
+				count++;
+			});
+			dojo.publish("/test/blah", ["first", "second"]);
+			t.is(1, count);
 		},
 		function connectPublisher(t){
 			var foo = { inc: 0, foo: function(){ this.inc++; } };
@@ -216,6 +226,21 @@ tests.register("tests._base.connect",
 		},
 		function publishSubscribe1000(t){
 			t.is(markAndSweepSubscribersTest(1000), 0);
+		},
+		function performanceAdd(){
+			function listener(){}
+			for(var i = 0;i < 1000; i++){
+				var foo = {};
+				dojo.connect(foo, "bar", listener);
+			}
+		},
+		function performanceFire(){
+			var foo = {};
+			function listener(){}
+			dojo.connect(foo, "bar", listener);
+			for(var i = 0;i < 100000; i++){
+				foo.bar();
+			}
 		}
 	]
 );

@@ -1,6 +1,8 @@
-dojo.provide("dojox.math.stats");
+// AMD-ID "dojox/math/stats"
+define(["dojo", "../main"], function(dojo, dojox) {
+	
+	dojo.getObject("math.stats", true, dojox);
 
-(function(){
 	var st = dojox.math.stats;
 	dojo.mixin(st, {
 		sd: function(/* Number[] */a){
@@ -187,4 +189,6 @@ dojo.provide("dojox.math.stats");
 			return result;	// Object
 		}
 	});
-})();
+
+	return dojox.math.stats;
+});

@@ -1,11 +1,11 @@
-dojo.provide("dojox.encoding.crypto.RSAKey-ext");
-dojo.experimental("dojox.encoding.crypto.RSAKey-ext");
+define([
+	"dojo/_base/kernel", // dojo.experimental
+	"dojo/_base/lang", // dojo.extend
+	"./RSAKey",
+	"../../math/BigInteger-ext"
+], function(kernel, lang, RSAKey, BigInteger) {
 
-dojo.require("dojox.encoding.crypto.RSAKey");
-dojo.require("dojox.math.BigInteger-ext");
-
-(function(){
-	var BigInteger = dojox.math.BigInteger;
+	kernel.experimental("dojox.encoding.crypto.RSAKey-ext");
 
 	// Undo PKCS#1 (type 2, random) padding and, if valid, return the plaintext
 	function pkcs1unpad2(d, n){
@@ -26,7 +26,7 @@ dojo.require("dojox.math.BigInteger-ext");
 		return ret;
 	}
 
-	dojo.extend(dojox.encoding.crypto.RSAKey, {
+	lang.extend(RSAKey, {
 		setPrivate: function(N, E, D){
 			// summary:
 			//	Set the private key fields N, e, d and CRT params from hex strings
@@ -117,4 +117,6 @@ dojo.require("dojox.math.BigInteger-ext");
 			return pkcs1unpad2(m, (this.n.bitLength() + 7) >> 3);
 		}
 	});
-})();
+	
+	return RSAKey;
+});

@@ -1,12 +1,15 @@
-dojo.provide("dojox.form.manager._FormMixin");
-
-dojo.require("dojox.form.manager._Mixin");
-
-(function(){
-	var fm = dojox.form.manager,
+define([
+	"dojo/_base/lang",
+	"dojo/_base/kernel",
+	"dojo/_base/event",
+	"dojo/window",
+	"./_Mixin",
+	"dojo/_base/declare"
+], function(lang, dojo, event, windowUtils, _Mixin, declare){
+	var fm = lang.getObject("dojox.form.manager", true),
 		aa = fm.actionAdapter;
 
-	dojo.declare("dojox.form.manager._FormMixin", null, {
+	return declare("dojox.form.manager._FormMixin", null, {
 		// summary:
 		//		Form manager's mixin for form-specific functionality.
 		// description:
@@ -51,7 +54,7 @@ dojo.require("dojox.form.manager._Mixin");
 			if(!(this.onReset(faux) === false) && faux.returnValue){
 				this.reset();
 			}
-			dojo.stopEvent(evt);
+			event.stop(evt);
 			return false;
 		},
 
@@ -83,7 +86,7 @@ dojo.require("dojox.form.manager._Mixin");
 			// for form-based managers.
 
 			if(this.onSubmit(evt) === false){ // only exactly false stops submit
-				dojo.stopEvent(evt);
+				event.stop(evt);
 			}
 		},
 
@@ -115,7 +118,7 @@ dojo.require("dojox.form.manager._Mixin");
 			for(var name in this.formWidgets){
 				var stop = false;
 				aa(function(_, widget){
-					if(!widget.attr("disabled") && widget.isValid && !widget.isValid()){
+					if(!widget.get("disabled") && widget.isValid && !widget.isValid()){
 						stop = true;
 					}
 				}).call(this, null, this.formWidgets[name].widget);
@@ -124,6 +127,29 @@ dojo.require("dojox.form.manager._Mixin");
 				}
 			}
 			return true;
+		},
+		validate: function(){
+			var isValid = true,
+				formWidgets = this.formWidgets,
+				didFocus = false, name;
+
+			for(name in formWidgets){
+				aa(function(_, widget){
+					// Need to set this so that "required" widgets get their
+					// state set.
+					widget._hasBeenBlurred = true;
+					var valid = widget.disabled || !widget.validate || widget.validate();
+					if(!valid && !didFocus){
+						// Set focus of the first non-valid widget
+						windowUtils.scrollIntoView(widget.containerNode || widget.domNode);
+						widget.focus();
+						didFocus = true;
+					}
+					isValid = isValid && valid;
+				}).call(this, null, formWidgets[name].widget);
+			}
+
+			return isValid;
 		}
 	});
-})();
+});

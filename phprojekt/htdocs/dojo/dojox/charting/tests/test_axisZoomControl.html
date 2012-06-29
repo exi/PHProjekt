@@ -1,7 +1,19 @@
-<!DOCTYPE HTML>
-<html>
+<!--[if IE 7]>
+<!DOCTYPE>
+<html lang="en">
 	<head>
-	    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
+<![endif]-->
+<!--[if IE 8]>
+<!DOCTYPE>
+<html lang="en">
+    <head>
+           <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7"/>
+<![endif]-->
+<![if gte IE 9]>
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+<![endif]>
 		<title>Axis Zoom Control</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<style type="text/css">
@@ -16,14 +28,12 @@
 			}
 		</style>
 		<script type="text/javascript" src="../../../dojo/dojo.js" djConfig="isDebug: true, parseOnLoad: true"></script>
-		<script type="text/javascript" src="../Theme.js"></script>
-		<script type="text/javascript" src="../axis2d/Default.js"></script>
-		<script type="text/javascript" src="../plot2d/Default.js"></script>
-		<script type="text/javascript" src="../plot2d/Grid.js"></script>
-		<script type="text/javascript" src="../Chart2D.js"></script>
 		<script type="text/javascript">
 			dojo.require("dojo.parser");
-			dojo.require("dojox.charting.Chart2D");
+			dojo.require("dojox.charting.Chart");
+            dojo.require("dojox.charting.axis2d.Default");
+            dojo.require("dojox.charting.plot2d.Lines");
+            dojo.require("dojox.charting.plot2d.Grid");
 			dojo.require("dojox.charting.themes.PlotKit.orange");
 			dojo.require("dojox.charting.action2d.Tooltip");
 			dojo.require("dojox.charting.action2d.Magnify");
@@ -33,7 +43,7 @@
 			
 			var chart;
 			makeObjects = function(){
-				chart = new dojox.charting.Chart2D("chart");
+				chart = new dojox.charting.Chart("chart");
 				chart.setTheme(dojox.charting.themes.PlotKit.orange);
 				chart.addAxis("x", {fixLower: "minor", natural: true, stroke: "grey",
 					majorTick: {stroke: "black", length: 4}, minorTick: {stroke: "gray", length: 2}});

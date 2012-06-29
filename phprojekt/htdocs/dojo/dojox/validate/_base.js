@@ -1,13 +1,18 @@
-dojo.provide("dojox.validate._base");
-dojo.experimental("dojox.validate");
+define([
+	"dojo/_base/lang",
+	"dojo/regexp", // dojo core expressions
+	"dojo/number", // dojo number expressions
+	"./regexp" // additional expressions
+], function(lang, regexp, number, xregexp) {
 
-dojo.require("dojo.regexp");		// dojo core expressions
-dojo.require("dojo.number");		// dojo number expressions
-dojo.require("dojox.validate.regexp"); 	// additional expressions
+	var validate = lang.getObject("dojox.validate", true);
+	/*=====
+		validate = dojox.validate;
+	=====*/
 
-dojox.validate.isText = function(/*String*/value, /*Object?*/flags){
+validate.isText = function(/*String*/value, /*Object?*/flags){
 	// summary:
-	//	Checks if a string has non whitespace characters. 
+	//	Checks if a string has non whitespace characters.
 	//	Parameters allow you to constrain the length.
 	//
 	// value: A string
@@ -28,13 +33,13 @@ dojox.validate.isText = function(/*String*/value, /*Object?*/flags){
 	
 	return true; // Boolean
 
-}
+};
 
-dojox.validate._isInRangeCache = {};
-dojox.validate.isInRange = function(/*String*/value, /*Object?*/flags){
+validate._isInRangeCache = {};
+validate.isInRange = function(/*String*/value, /*Object?*/flags){
 	// summary:
 	//	Validates whether a string denoting a number
-	//	is between a max and min. 
+	//	is between a max and min.
 	//
 	// value: A string
 	// flags: {max:Number, min:Number, decimal:String}
@@ -42,7 +47,7 @@ dojox.validate.isInRange = function(/*String*/value, /*Object?*/flags){
 	//    flags.min  A number, which the value must be greater than or equal to for the validation to be true.
 	//    flags.decimal  The character used for the decimal point.  Default is ".".
 	
-	value = dojo.number.parse(value, flags);
+	value = number.parse(value, flags);
 	if(isNaN(value)){
 		return false; // Boolean
 	}
@@ -53,7 +58,7 @@ dojox.validate.isInRange = function(/*String*/value, /*Object?*/flags){
 		min = (typeof flags.min == "number") ? flags.min : -Infinity,
 		dec = (typeof flags.decimal == "string") ? flags.decimal : ".",
 	
-		cache = dojox.validate._isInRangeCache,
+		cache = validate._isInRangeCache,
 		cacheIdx = value + "max" + max + "min" + min + "dec" + dec
 	;
 	if(typeof cache[cacheIdx] != "undefined"){
@@ -63,14 +68,14 @@ dojox.validate.isInRange = function(/*String*/value, /*Object?*/flags){
 	cache[cacheIdx] = !(value < min || value > max);
 	return cache[cacheIdx]; // Boolean
 
-}
+};
 
-dojox.validate.isNumberFormat = function(/* String */value, /* Object? */flags){
+validate.isNumberFormat = function(/* String */value, /* Object? */flags){
 	// summary: Validates any sort of number based format
 	//
 	// description:
 	//		Validates any sort of number based format. Use it for phone numbers,
-	//		social security numbers, zip-codes, etc. The value can be validated 
+	//		social security numbers, zip-codes, etc. The value can be validated
 	//		against one format or one of multiple formats.
 	//
 	// Format Definition
@@ -78,7 +83,7 @@ dojox.validate.isNumberFormat = function(/* String */value, /* Object? */flags){
 	// |   ?        Stands for an optional digit, 0-9 or nothing.
 	//    All other characters must appear literally in the expression.
 	//
-	// example:   
+	// example:
 	// |  "(###) ###-####"       ->   (510) 542-9742
 	// |  "(###) ###-#### x#???" ->   (510) 542-9742 x153
 	// |  "###-##-####"          ->   506-82-1089       i.e. social security number
@@ -86,10 +91,10 @@ dojox.validate.isNumberFormat = function(/* String */value, /* Object? */flags){
 	//
 	// value: A string
 	//
-	// flags: Object? 
+	// flags: Object?
 	//		FIXME: make pseudo-object for this
 	//		format: String
-	//			
+	//
 	//    flags.format  A string or an Array of strings for multiple formats.
 	//
 	// example:
@@ -98,23 +103,23 @@ dojox.validate.isNumberFormat = function(/* String */value, /* Object? */flags){
 	//
 	// example:
 	// 		Check Multiple formats:
-	// |	dojox.validate.isNumberFormat("123-45", {	
+	// |	dojox.validate.isNumberFormat("123-45", {
 	// |		format:["### ##","###-##","## ###"]
 	// |	});
 	//
 
-	var re = new RegExp("^" + dojox.validate.regexp.numberFormat(flags) + "$", "i");
+	var re = new RegExp("^" + xregexp.numberFormat(flags) + "$", "i");
 	return re.test(value); // Boolean
-}
+};
 
-dojox.validate.isValidLuhn = function(/* String */value){
+validate.isValidLuhn = function(/* String */value){
 	// summary: Validate a String value against the Luhn algorithm.
 	// description:
 	//		Validate a String value against the Luhn algorithm to verify
-	//		its integrity. 
+	//		its integrity.
 	
 	var sum = 0, parity, curDigit;
-	if(!dojo.isString(value)){
+	if(!lang.isString(value)){
 		value = String(value);
 	}
 	value = value.replace(/[- ]/g,''); //ignore dashes and whitespaces
@@ -131,5 +136,8 @@ dojox.validate.isValidLuhn = function(/* String */value){
 		sum += curDigit;
 	}
 	return !(sum % 10); // Boolean
-}
+};
 
+return validate;
+
+});

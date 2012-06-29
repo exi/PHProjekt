@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	displayOptions: "[اختيارات العرض]",
 	title: "العنوان",
@@ -5,7 +7,9 @@
 	contributors: "المساهمين",
 	id: "الكود",
 	close: "[اغلاق]",
-	updated: "تعديل في",
+	updated: "تحديث في",
 	summary: "الملخص",
-	content: "محتويات"
+	content: "المحتويات"
 })
+//end v1.x content
+);

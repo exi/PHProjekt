@@ -1,12 +1,8 @@
-if(window["dojo"]){
-	dojo.provide("doh._browserRunner");
-}
-
-// FIXME: need to add prompting for monkey-do testing
-
-(function(){
+define(["dojo", "doh/runner", "dojo/_firebug/firebug"], function(dojo, doh) {
+	doh.isBrowser= true;
+	var topdog;
 	try{
-		var topdog = (window.parent == window) || !Boolean(window.parent.doh);
+		topdog = (window.parent == window) || !Boolean(window.parent.doh);
 	}catch(e){
 		//can't access window.parent.doh, then consider ourselves as topdog
 		topdog=true;
@@ -19,7 +15,7 @@ if(window["dojo"]){
 			return document.getElementById(id);
 		};
 
-		var _addOnEvt = function(	type,		// string
+		var _addOnEvt = function( type,		// string
 									refOrName,	// function or string
 									scope){		// object, defaults is window
 
@@ -66,7 +62,7 @@ if(window["dojo"]){
 					return Math.round(n/360000)/10+"h";
 			}
 		};
-		
+
 		var _logBacklog = [], _loggedMsgLen = 0;
 		var sendToLogPane = function(args, skip){
 			var msg = "";
@@ -106,10 +102,10 @@ if(window["dojo"]){
 			}
 			return n;
 		}
-		
+
 		doh._jumpToLog = function(e){
 			//console.log(e);
-			
+
 			var node = findTarget(e?e.target:window.event.srcElement);
 			if(!node){
 				return;
@@ -196,54 +192,46 @@ if(window["dojo"]){
 				os.apply(doh,arguments);
 			}
 		})(doh._setupGroupForRun);
-		
-		doh._report = (function(or){
-			//overload _report to insert a tfoot
-			return function(){
-				var tb = byId("testList");
-				if(tb){
-					var tfoots=tb.getElementsByTagName('tfoot');
-					if(tfoots.length){
-						tb.removeChild(tfoots[0]);
-					}
-					var foot = tb.createTFoot();
-					var row = foot.insertRow(-1);
-					row.className = 'inProgress';
-					var cell=row.insertCell(-1);
-					cell.colSpan=2;
-					cell.innerHTML="Result";
-					cell = row.insertCell(-1);
-					cell.innerHTML=this._testCount+" tests in "+this._groupCount+" groups /<span class='failure'>"+this._errorCount+"</span> errors, <span class='failure'>"+this._failureCount+"</span> failures";
-					cell.setAttribute('_target',_loggedMsgLen+1);
-					row.insertCell(-1).innerHTML=formatTime(doh._totalTime);
+
+		var originalDohReport= doh._report;
+		doh._report = function(){
+			var tb = byId("testList");
+			if(tb){
+				var tfoots=tb.getElementsByTagName('tfoot');
+				if(tfoots.length){
+					tb.removeChild(tfoots[0]);
 				}
-				
-				//This location can do the final performance rendering for the results
-				//of any performance tests.
-				var plotResults = null;
-				var standby;
-				if(doh.perfTestResults){
-					if(window.dojo){
-						//If we have dojo and here are perf tests results, 
-						//well, we'll use the dojo charting functions
-						dojo.require("dojox.charting.Chart2D");
-						dojo.require("dojox.charting.DataChart");
-						dojo.require("dojox.charting.plot2d.Scatter");
-						dojo.require("dojox.charting.plot2d.Lines");
-						dojo.require("dojo.data.ItemFileReadStore");
-						plotResults = doh._dojoPlotPerfResults;
-					}else{
-						plotResults = doh._asciiPlotPerfResults;
-					}
+				var foot = tb.createTFoot();
+				var row = foot.insertRow(-1);
+				row.className = 'inProgress';
+				var cell=row.insertCell(-1);
+				cell.colSpan=2;
+				cell.innerHTML="Result";
+				cell = row.insertCell(-1);
+				cell.innerHTML=this._testCount+" tests in "+this._groupCount+" groups /<span class='failure'>"+this._errorCount+"</span> errors, <span class='failure'>"+this._failureCount+"</span> failures";
+				cell.setAttribute('_target',_loggedMsgLen+1);
+				row.insertCell(-1).innerHTML=formatTime(doh._totalTime);
+			}
+
+			//This location can do the final performance rendering for the results
+			//of any performance tests.
+			var plotResults = null;
+			var standby;
+			if(doh.perfTestResults){
+				require(["dojox/math/stats", "dojox/charting/Chart2D", "dojox/charting/DataChart", "dojox/charting/plot2d/Scatter", "dojox/charting/plot2d/Lines", "dojo/data/ItemFileReadStore"], function(stats) {
+					dojo.mixin(doh, stats);
+
+					plotResults = doh._dojoPlotPerfResults;
 					try{
 						var g;
 						var pBody = byId("perfTestsBody");
 						var chartsToRender = [];
-
-						if(doh.perfTestResults){
-							doh.showPerfTestsPage();
-						}
+						// store analytics for reading later
+						// keyed on test group name, each value is in turn an object keyed on test name
+						doh.perfTestAnalytics={};
+						doh.showPerfTestsPage();
 						for(g in doh.perfTestResults){
+							doh.perfTestAnalytics[g]={};
 							var grp = doh.perfTestResults[g];
 							var hdr = document.createElement("h1");
 							hdr.appendChild(document.createTextNode("Group: " + g));
@@ -262,7 +250,7 @@ if(window["dojo"]){
 								ind.appendChild(div);
 
 								//Figure out the basic info
-								var results = "<b>TRIAL SIZE: </b>"  + fResults.trials[0].testIterations + " iterations<br>" +
+								var results = "<b>TRIAL SIZE: </b>"	 + fResults.trials[0].testIterations + " iterations<br>" +
 									"<b>NUMBER OF TRIALS: </b>" + fResults.trials.length + "<br>";
 
 								//Figure out the average test pass cost.
@@ -273,13 +261,22 @@ if(window["dojo"]){
 									iAvgArray.push(fResults.trials[i].average);
 									tAvgArray.push(fResults.trials[i].executionTime);
 								}
-								results += "<b>AVERAGE TRIAL EXECUTION TIME: </b>" + doh.average(tAvgArray).toFixed(10) + "ms.<br>";
-								results += "<b>MAXIMUM TEST ITERATION TIME: </b>" + doh.max(iAvgArray).toFixed(10) + "ms.<br>";
-								results += "<b>MINIMUM TEST ITERATION TIME: </b>" + doh.min(iAvgArray).toFixed(10) + "ms.<br>";
-								results += "<b>AVERAGE TEST ITERATION TIME: </b>" + doh.average(iAvgArray).toFixed(10) + "ms.<br>";
-								results += "<b>MEDIAN TEST ITERATION TIME: </b>" + doh.median(iAvgArray).toFixed(10) + "ms.<br>";
-								results += "<b>VARIANCE TEST ITERATION TIME: </b>" + doh.variance(iAvgArray).toFixed(10) + "ms.<br>";
-								results += "<b>STANDARD DEVIATION ON TEST ITERATION TIME: </b>" + doh.standardDeviation(iAvgArray).toFixed(10) + "ms.<br>";
+								var analytics=doh.perfTestAnalytics[g][f]={
+									averageTrialExecutionTime: doh.mean(tAvgArray),
+									maxTestIterationTime: doh.max(iAvgArray),
+									minTestIterationTime: doh.min(iAvgArray),
+									averageTestIterationTime: doh.mean(iAvgArray),
+									medianTestIterationTime: doh.median(iAvgArray),
+									varianceTestIterationTime: doh.variance(iAvgArray),
+									standardDeviationTestIterationTime: doh.sd(iAvgArray)
+								};
+								results += "<b>AVERAGE TRIAL EXECUTION TIME: </b>" + analytics.averageTrialExecutionTime.toFixed(10) + "ms.<br>";
+								results += "<b>MAXIMUM TEST ITERATION TIME: </b>" + analytics.maxTestIterationTime.toFixed(10) + "ms.<br>";
+								results += "<b>MINIMUM TEST ITERATION TIME: </b>" + analytics.minTestIterationTime.toFixed(10) + "ms.<br>";
+								results += "<b>AVERAGE TEST ITERATION TIME: </b>" + analytics.averageTestIterationTime.toFixed(10) + "ms.<br>";
+								results += "<b>MEDIAN TEST ITERATION TIME: </b>" + analytics.medianTestIterationTime.toFixed(10) + "ms.<br>";
+								results += "<b>VARIANCE TEST ITERATION TIME: </b>" + analytics.varianceTestIterationTime.toFixed(10) + "ms.<br>";
+								results += "<b>STANDARD DEVIATION ON TEST ITERATION TIME: </b>" +analytics.standardDeviationTestIterationTime.toFixed(10) + "ms.<br>";
 
 								//Okay, attach it all in.
 								div.innerHTML = results;
@@ -324,11 +321,12 @@ if(window["dojo"]){
 					}catch(e){
 						doh.debug(e);
 					}
-				}
-				or.apply(doh,arguments);
+				});
 			}
-		})(doh._report);
-		
+			originalDohReport.apply(doh,arguments);
+		};
+
+
 		doh.error = undefined;
 		if(this["opera"] && opera.postError){
 			doh.debug = function(){
@@ -343,27 +341,23 @@ if(window["dojo"]){
 			if(console.error){
 				doh.error = function(){
 					sendToLogPane.call(window, arguments);
-					console.error.apply(console, arguments);
+					console.error(Array.prototype.join.call(arguments, " "))
 				};
-			} 
+			}
 			if(console.debug){
 				doh.debug = function(){
 					sendToLogPane.call(window, arguments);
-					console.debug.apply(console, arguments);
+					console.debug(Array.prototype.join.call(arguments, " "))
 				};
 			}else if(console.info){
 				doh.debug = function(){
 					sendToLogPane.call(window, arguments);
-					console.info.apply(console, arguments);
+					console.info(Array.prototype.join.call(arguments, " "))
 				};
 			}else{
 				doh.debug = function(){
-					var msg = "";
-					for(var x=0; x<arguments.length; x++){
-						msg += " "+arguments[x];
-					}
-					sendToLogPane([msg]);
-					console.log("DEBUG:"+msg);
+					sendToLogPane.call(window, arguments);
+					console.log("DEBUG:"+ Array.prototype.join.call(arguments, " "));
 				};
 			}
 		}else{
@@ -372,7 +366,6 @@ if(window["dojo"]){
 			}
 		}
 		doh.error = doh.error || doh.debug;
-
 		var loaded = false;
 		var groupTemplate = null;
 		var testTemplate = null;
@@ -549,7 +542,7 @@ if(window["dojo"]){
 
 		doh._updateGlobalProgressBar = function(p,success,group){
 			var outerContainer=byId("progressOuter");
-					
+
 			var gdiv=outerContainer.childNodes[doh._runedSuite-1];
 			if(!gdiv){
 				gdiv=document.createElement('div');
@@ -590,7 +583,7 @@ if(window["dojo"]){
 				if(gn && doh._curTestCount){
 					var p = doh._runed/doh._curTestCount;
 					var groupfail = this._updateGlobalProgressBar((doh._runedSuite+p-1)/doh._groupCount,success,group);
-					
+
 					var pbar = gn.getElementsByTagName("td")[2].lastChild;
 					pbar.className = groupfail?"failure":"success";
 					pbar.style.width = parseInt(p*100)+"%";
@@ -599,19 +592,17 @@ if(window["dojo"]){
 			}
 			this._groupTotalTime += elapsed;
 			this.debug((success ? "PASSED" : "FAILED"), "test:", fixture.name, elapsed, 'ms');
-		}
+		};
 
-		// FIXME: move implementation to _browserRunner?
-		doh.registerUrl = function(	/*String*/ group, 
-										/*String*/ url, 
-										/*Integer*/ timeout){
-			var tg = new String(group);
-			this.register(group, {
+		doh._registerUrl = function(group, url, timeout, type, dohArgs){
+			group= group || url;
+			this._registerTest(group, {
 				name: url,
 				setUp: function(){
-					doh.currentGroupName = tg;
+					doh.currentGroupName = group;
 					doh.currentGroup = this;
 					doh.currentUrl = url;
+					doh.dohArgs = dohArgs;
 					this.d = new doh.Deferred();
 					doh.currentTestDeferred = this.d;
 					doh.showTestPage();
@@ -632,10 +623,10 @@ if(window["dojo"]){
 					// byId("testBody").src = "about:blank";
 					doh.showLogPage();
 				}
-			});
-		}
+			}, type);
+		};
 
-		// 
+		//
 		// Utility code for runner.html
 		//
 		// var isSafari = navigator.appVersion.indexOf("Safari") >= 0;
@@ -704,7 +695,7 @@ if(window["dojo"]){
 			if(loaded){ return; }
 			loaded = true;
 			groupTemplate = byId("groupTemplate");
-			if(!groupTemplate){ 
+			if(!groupTemplate){
 				// make sure we've got an ammenable DOM structure
 				return;
 			}
@@ -716,7 +707,7 @@ if(window["dojo"]){
 			doh._updateTestList();
 		});
 
-		_addOnEvt("load", 
+		_addOnEvt("load",
 			function(){
 				// let robot code run if it gets to this first
 				var __onEnd = doh._onEnd;
@@ -732,7 +723,7 @@ if(window["dojo"]){
 						toggleRunning();
 					}
 				}
-				if(!byId("play")){ 
+				if(!byId("play")){
 					// make sure we've got an amenable DOM structure
 					return;
 				}
@@ -810,9 +801,6 @@ if(window["dojo"]){
 					chart.setStore(ifs, {name:"*"}, "trials");
 				};
 
-				doh._asciiPlotPerfResults = function(){
-					//TODO:  Implement!
-				};
 			}
 		);
 	}else{
@@ -822,9 +810,6 @@ if(window["dojo"]){
 		var _thisGroup = _doh.currentGroupName;
 		var _thisUrl = _doh.currentUrl;
 		if(_thisGroup){
-			doh._testRegistered = function(group, tObj){
-				_doh._updateTestList(_thisGroup, tObj);
-			}
 			doh._onEnd = function(){
 				_doh._errorCount += doh._errorCount;
 				_doh._failureCount += doh._failureCount;
@@ -832,18 +817,17 @@ if(window["dojo"]){
 				// should we be really adding raw group counts?
 				//_doh._groupCount += doh._groupCount;
 				_doh.currentTestDeferred.callback(true);
-			}
-			var otr = doh._getTestObj;
-			doh._getTestObj = function(){
-				var tObj = otr.apply(doh, arguments);
-				tObj.name = _thisUrl+"::"+arguments[0]+"::"+tObj.name;
-				return tObj;
-			}
+			};
+			doh._testRegistered = function(group, fixture){
+				fixture.name = _thisUrl+"::"+arguments[0]+"::"+fixture.name;
+				_doh._updateTestList(_thisGroup, fixture);
+			};
 			doh.debug = doh.hitch(_doh, "debug");
+			doh.error = doh.hitch(_doh, "error");
 			doh.registerUrl = doh.hitch(_doh, "registerUrl");
 			doh._testStarted = function(group, fixture){
 				_doh._testStarted(_thisGroup, fixture);
-			}
+			};
 			doh._testFinished = function(g, f, s){
 				_doh._testFinished(_thisGroup, f, s);
 
@@ -867,17 +851,17 @@ if(window["dojo"]){
 						doh.debug(e);
 					}
 				}
-			}
+			};
 			doh._groupStarted = function(g){
 				if(!this._setParent){
 					_doh._curTestCount = this._testCount;
 					_doh._curGroupCount = this._groupCount;
 					this._setParent = true;
 				}
-			}
+			};
 			doh._report = function(){
 			};
 		}
 	}
-
-})();
+	return doh;
+});

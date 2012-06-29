@@ -1,4 +1,10 @@
-dojo.provide("dojo.cldr.monetary");
+define(["../main"], function(dojo) {
+	// module:
+	//		dojo/cldr/monetary
+	// summary:
+	//		TODOC
+
+dojo.getObject("cldr.monetary", true, dojo);
 
 dojo.cldr.monetary.getData = function(/*String*/code){
 // summary: A mapping of currency code to currency-specific formatting information. Returns a unique object with properties: places, round.
@@ -24,3 +30,6 @@ dojo.cldr.monetary.getData = function(/*String*/code){
 
 	return {places: places, round: round}; // Object
 };
+
+return dojo.cldr.monetary;
+});

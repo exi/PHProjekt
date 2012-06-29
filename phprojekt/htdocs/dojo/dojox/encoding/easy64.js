@@ -1,6 +1,9 @@
-dojo.provide("dojox.encoding.easy64");
+define(["dojo/_base/lang"], function(lang) {
+	var easy64 = lang.getObject("dojox.encoding.easy64", true);
+	/*=====
+		easy64 = dojox.encoding.easy64;
+	=====*/
 
-(function(){
 	var c = function(input, length, result){
 		for(var i = 0; i < length; i += 3){
 			result.push(
@@ -11,8 +14,8 @@ dojo.provide("dojox.encoding.easy64");
 			);
 		}
 	};
-	
-	dojox.encoding.easy64.encode = function(input){
+
+	easy64.encode = function(input){
 		// summary: encodes input data in easy64 string
 		// input: Array: an array of numbers (0-255) to encode
 		var result = [], reminder = input.length % 3, length = input.length - reminder;
@@ -26,7 +29,7 @@ dojo.provide("dojox.encoding.easy64");
 		return result.join("");	// String
 	};
 
-	dojox.encoding.easy64.decode = function(input){
+	easy64.decode = function(input){
 		// summary: decodes the input string back to array of numbers
 		// input: String: the input string to decode
 		var n = input.length, r = [], b = [0, 0, 0, 0], i, j, d;
@@ -43,4 +46,6 @@ dojo.provide("dojox.encoding.easy64");
 		}
 		return r;
 	};
-})();
+
+	return easy64;
+});

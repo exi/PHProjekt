@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	insertTableTitle: "Vstavi tabelo",
 	modifyTableTitle: "Spremeni tabelo",
@@ -5,7 +7,7 @@
 	columns: "Stolpci:",
 	align: "Poravnaj:",
 	cellPadding: "Polnjenje celic:",
-	cellSpacing: "Razmik celic:",
+	cellSpacing: "Razmik med celicami:",
 	tableWidth: "Širina tabele:",
 	backgroundColor: "Barva ozadja:",
 	borderColor: "Barva obrobe:",
@@ -30,3 +32,5 @@
 })
 	
 
+//end v1.x content
+);

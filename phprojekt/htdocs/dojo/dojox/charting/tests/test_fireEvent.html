@@ -1,8 +1,20 @@
+<!--[if IE 7]>
+<!DOCTYPE>
+<html lang="en">
+	<head>
+<![endif]-->
+<!--[if IE 8]>
+<!DOCTYPE>
+<html lang="en">
+    <head>
+           <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7"/>
+<![endif]-->
+<![if gte IE 9]>
 <!DOCTYPE HTML>
-<html>
-<head>
+<html lang="en">
+	<head>
+<![endif]>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
 <title>Chart 2D: fireEvent test</title>
 <style type="text/css">
 	@import "../../../dojo/resources/dojo.css";
@@ -17,13 +29,23 @@
     .events th {font-weight: bold;}
 </style>
 <script type="text/javascript" src="../../../dojo/dojo.js" djConfig="isDebug: true, parseOnLoad: true"></script>
-<script type="text/javascript" src="../Chart2D.js"></script>
 <script type="text/javascript">
 dojo.require("dijit.form.Button");
 dojo.require("dijit.form.Select");
 dojo.require("dijit.form.NumberSpinner");
 
-dojo.require("dojox.charting.Chart2D");
+dojo.require("dojox.charting.Chart");
+dojo.require("dojox.charting.axis2d.Default");
+dojo.require("dojox.charting.plot2d.Columns");
+dojo.require("dojox.charting.plot2d.ClusteredColumns");
+dojo.require("dojox.charting.plot2d.StackedColumns");
+dojo.require("dojox.charting.plot2d.Bars");
+dojo.require("dojox.charting.plot2d.ClusteredBars");
+dojo.require("dojox.charting.plot2d.StackedBars");
+dojo.require("dojox.charting.plot2d.Lines");
+dojo.require("dojox.charting.plot2d.StackedAreas");
+dojo.require("dojox.charting.plot2d.Pie");
+dojo.require("dojox.charting.plot2d.Grid");
 dojo.require("dojox.charting.themes.CubanShirts");
 dojo.require("dojox.charting.widget.Legend");
 
@@ -35,6 +57,8 @@ dojo.require("dojox.charting.action2d.Shake");
 dojo.require("dojox.charting.action2d.Tooltip");
 
 dojo.require("dojox.lang.functional.sequence");
+
+dojo.require("dojo.parser");
 
 var chart, legend, size = 10, magnitude = 30, none = "<em>none</em>";
 
@@ -78,7 +102,7 @@ function getZeroes(){
 var actions = [];
 
 function addActions(chart){
-	dojox.lang.functional.forEach(actions, ".destroy()");
+	dojox.lang.functional.forEach(actions, ".disconnect()");
 	actions = [
 		new dojox.charting.action2d.Highlight(chart),
 		new dojox.charting.action2d.Magnify(chart),
@@ -89,7 +113,7 @@ function addActions(chart){
 }
 
 function makeObjects(){
-	chart = new dojox.charting.Chart2D("test");
+	chart = new dojox.charting.Chart("test");
 	chart.setTheme(dojox.charting.themes.CubanShirts);
 
 	chart.addAxis("x", {natural: true, includeZero: true, fixUpper: "minor"});

@@ -1,23 +1,23 @@
-dojo.provide("dojox.highlight._base");
-/*=====
-	dojox.highlight = {
-		//	summary: 
-		//		Syntax highlighting with language auto-detection package
-		//
-		//	description:
-		//		
-		//		Syntax highlighting with language auto-detection package.
-		//		Released under CLA by the Dojo Toolkit, original BSD release 
-		//		available from: http://softwaremaniacs.org/soft/highlight/
-		//
-		//		
-	};
-=====*/
+define(["dojo", "dojox/main"], function(dojo, dojox){
 
-;(function(){
-	var dh = dojox.highlight,
-		C_NUMBER_RE = '\\b(0x[A-Za-z0-9]+|\\d+(\\.\\d+)?)';
-	
+	/*=====
+		dojox.highlight = {
+			//	summary:
+			//		Syntax highlighting with language auto-detection package
+			//
+			//	description:
+			//
+			//		Syntax highlighting with language auto-detection package.
+			//		Released under CLA by the Dojo Toolkit, original BSD release
+			//		available from: http://softwaremaniacs.org/soft/highlight/
+			//
+			//
+		};
+	=====*/
+	var dh = dojo.getObject("dojox.highlight", true),
+		C_NUMBER_RE = '\\b(0x[A-Za-z0-9]+|\\d+(\\.\\d+)?)'
+	;
+	dh.languages = dh.languages || {};
 	// constants
 
 	dh.constants = {
@@ -35,7 +35,7 @@ dojo.provide("dojox.highlight._base");
 		},
 		QUOTE_STRING_MODE: {
 			className: 'string',
-			begin: '"', 
+			begin: '"',
 			end: '"',
 			illegal: '\\n',
 			contains: ['escape'],
@@ -98,7 +98,7 @@ dojo.provide("dojox.highlight._base");
 				var kw = mode.keywords[key];
     			if(kw instanceof Object){  // dojo.isObject?
 					mode.keywordGroups = mode.keywords;
-				}else{ 
+				}else{
 					mode.keywordGroups = {keyword: mode.keywords};
 				}
 				break;
@@ -362,7 +362,7 @@ dojo.provide("dojox.highlight._base");
 	}
 	function highlightStringLanguage(lang, str){
 		var highlight = new Highlighter(lang, str);
-		return {result:highlight.result, langName:lang, partialResult:highlight.partialResult};		
+		return {result:highlight.result, langName:lang, partialResult:highlight.partialResult};
 	}
 
 	function highlightLanguage(block, lang){
@@ -407,15 +407,15 @@ dojo.provide("dojox.highlight._base");
 
 	dojox.highlight.init = function(/* String|DomNode */ node){
 		//	summary: Highlight a passed node
-		//	
+		//
 		//	description:
-		//		
+		//
 		//		Syntax highlight a passed DomNode or String ID of a DomNode
 		//
-		// 
+		//
 		//	example:
 		//	|	dojox.highlight.init("someId");
-		//		
+		//
 		node = dojo.byId(node);
 		if(dojo.hasClass(node, "no-highlight")){ return; }
 		if(!verifyText(node)){ return; }
@@ -441,11 +441,11 @@ dojo.provide("dojox.highlight._base");
 		//		`dojox.highlight.init` directly.
 		//
 		//	props: Object?
-		//		Unused. Pass 'null' or {}. Positional usage to allow `dojo.parser` to instantiate 
+		//		Unused. Pass 'null' or {}. Positional usage to allow `dojo.parser` to instantiate
 		//		this class as other Widgets would be.
-		// 
+		//
 		//	node: String|DomNode
-		//		A String ID or DomNode reference to use as the root node of this instance. 
+		//		A String ID or DomNode reference to use as the root node of this instance.
 		//
 		//	example:
 		//	|	<pre><code dojoType="dojox.highlight.Code">for(var i in obj){ ... }</code></pre>
@@ -457,6 +457,8 @@ dojo.provide("dojox.highlight._base");
 	};
 =====*/
 
-	dh.Code = function(p, n){ dh.init(n); };
+	dh.Code = function(props, node){ dh.init(node); };
 
-})();
+	return dh;
+
+});

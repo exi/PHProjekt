@@ -1,8 +1,10 @@
+define(
+//begin v1.x content
 ({
 // local representation of all CSS3 named colors, companion to dojo.colors.  To be used where descriptive information
 // is required for each color, such as a palette widget, and not for specifying color programatically.
 
-//Note: due to the SVG 1.0 spec additions, some of these are alternate spellings for the same color e.g. gray vs. gray. 
+//Note: due to the SVG 1.0 spec additions, some of these are alternate spellings for the same color e.g. gray vs. gray.
 //TODO: should we be using unique rgb values as keys instead and avoid these duplicates, or rely on the caller to do the reverse mapping?
 aliceblue: "艾莉斯蓝",
 antiquewhite: "古董白",
@@ -144,6 +146,7 @@ tan: "茶色",
 teal: "青色",
 thistle: "蓟色",
 tomato: "番茄色",
+transparent: "透明的",
 turquoise: "青绿色",
 violet: "紫罗兰色",
 wheat: "淡黄色",
@@ -152,3 +155,5 @@ whitesmoke: "烟白色",
 yellow: "黄色",
 yellowgreen: "黄绿色"
 })
+//end v1.x content
+);

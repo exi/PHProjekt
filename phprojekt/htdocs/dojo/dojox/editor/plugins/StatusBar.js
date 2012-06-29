@@ -1,19 +1,23 @@
-dojo.provide("dojox.editor.plugins.StatusBar");
-
-dojo.require("dijit._editor._Plugin");
-dojo.require("dijit.Toolbar");
-dojo.require("dojox.layout.ResizeHandle");
+define([
+	"dojo",
+	"dijit",
+	"dojox",
+	"dijit/_Widget",
+	"dijit/_TemplatedMixin",
+	"dijit/_editor/_Plugin",
+	"dojo/_base/connect",
+	"dojo/_base/declare",
+	"dojox/layout/ResizeHandle"
+], function(dojo, dijit, dojox) {
 
 dojo.experimental("dojox.editor.plugins.StatusBar");
-
-
-dojo.declare("dojox.editor.plugins._StatusBar", [dijit._Widget, dijit._Templated],{
+dojo.declare("dojox.editor.plugins._StatusBar", [dijit._Widget, dijit._TemplatedMixin],{
 	// templateString: String
 	//		Template for the widget.  Currently using table to get the alignment behavior and
 	//		bordering I wanted.  Would prefer not to use table, though.
 	templateString: '<div class="dojoxEditorStatusBar">' +
 		'<table><tbody><tr>'+
-		'<td class="dojoxEditorStatusBarText" tabindex="-1" aria-role="presentation" aria-live="aggressive"><span dojoAttachPoint="barContent">&nbsp;</span></td>' + 
+		'<td class="dojoxEditorStatusBarText" tabindex="-1" aria-role="presentation" aria-live="aggressive"><span dojoAttachPoint="barContent">&nbsp;</span></td>' +
 		'<td><span dojoAttachPoint="handle"></span></td>' +
 		'</tr></tbody><table>'+
 	'</div>',
@@ -169,4 +173,8 @@ dojo.subscribe(dijit._scopeName + ".Editor.getPlugin",null,function(o){
 		var resizer = ("resizer" in o.args)?o.args.resizer:true;
 		o.plugin = new dojox.editor.plugins.StatusBar({resizer: resizer});
 	}
+});
+
+return dojox.editor.plugins.StatusBar;
+
 });

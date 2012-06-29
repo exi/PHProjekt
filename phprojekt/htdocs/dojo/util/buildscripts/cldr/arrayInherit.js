@@ -2,14 +2,14 @@
  *  The CLDR represents some lists, like month names, as separate entries, and our JSON uses arrays to express them.
  *  For some variants, the best our XSLT can do is translate this to a sparse array with 'undefined' entries.
  *  These entries need to be picked up from the parent locale(s) and copied into the array as necessary(only when the item
- *  is not the source of a locale alias mapping, like 'months-format-abbr' should be ignored if it is the source of 
+ *  is not the source of a locale alias mapping, like 'months-format-abbr' should be ignored if it is the source of
  *  locale alias mapping like 'months-format-abbr@localeAlias' :{'target':"months-format-wide",'bundle':"gregorian"}).
  *  So, this script is responsible for taking all the generated JSON files, and for values which are of type
- *  array and not the source of locale alias mapping, mixing in the parent values with the undefined ones, recursing 
- *  all the way to the 'root' locale,and replacing the contents of the file.  
+ *  array and not the source of locale alias mapping, mixing in the parent values with the undefined ones, recursing
+ *  all the way to the 'root' locale,and replacing the contents of the file.
  *
  *  this script traverses all locales dir in the given root dir
- *  
+ *
  *   E.g.(Just for example, the contents are not applicable)
  *   parent locale - "en":
  *    // generated from ldml/main/ *.xml, xpath: ldml/calendars/calendar-ethiopic
@@ -40,10 +40,33 @@ djConfig={baseUrl: "../../../dojo/"};
 load("../../../dojo/dojo.js");
 load("../jslib/logger.js");
 load("../jslib/fileUtil.js");
-load("../jslib/buildUtil.js");
 load("cldrUtil.js");
 
 dojo.require("dojo.i18n");
+
+var _searchLocalePath = function(/*String*/locale, /*Boolean*/down, /*Function*/searchFunc){
+    //      summary:                                                                                                                   
+    //              A helper method to assist in searching for locale-based resources.                                                 
+    //              Will iterate through the variants of a particular locale, either up                                                
+    //              or down, executing a callback function.  For example, "en-us" and                                                  
+    //              true will try "en-us" followed by "en" and finally "ROOT".                                                         
+
+    locale = dojo.i18n.normalizeLocale(locale);
+
+    var elements = locale.split('-');
+    var searchlist = [];
+    for(var i = elements.length; i > 0; i--){
+	searchlist.push(elements.slice(0, i).join('-'));
+    }
+    searchlist.push(false);
+    if(down){searchlist.reverse();}
+
+    for(var j = searchlist.length - 1; j >= 0; j--){
+	var loc = searchlist[j] || "ROOT";
+	var stop = searchFunc(loc);
+	if(stop){ break; }
+    }
+};
 
 var dir = arguments[0];
 var logDir = arguments[1];
@@ -65,11 +88,11 @@ for(var i= 0; i < fileList.length; i++){
 	var hasChanged = false;
 	
 	try{
-		dojo.i18n._requireLocalization('dojo.cldr', 'gregorian', locale);						
+//		dojo.i18n._requireLocalization('dojo.cldr', 'gregorian', locale);
 		var bundle = dojo.i18n.getLocalization('dojo.cldr', 'gregorian', locale); //flattened bundle
-	}catch(e){print(e);/* simply ignore if no bundle found*/}
+	}catch(e){/* logStr += "arrayInherit: an exception occurred: "+e;/* simply ignore if no bundle found*/}
 	
-	dojo.i18n._searchLocalePath(locale, true, function(variant){
+	_searchLocalePath(locale, true, function(variant){
 		var isComplete = false;
 		var path = jsPath;
 		if(variant=="ROOT"){
@@ -93,11 +116,11 @@ for(var i= 0; i < fileList.length; i++){
 			//logStr += locale + "===============================================\n";
 			for(prop in data){
 				if(dojo.isArray(data[prop])){
-					//ignore if the property is an alias source, for alias.js and specialLocale.js 
+					//ignore if the property is an alias source, for alias.js and specialLocale.js
 					if(isLocaleAliasSrc(prop, bundle)){
 						//logStr += prop + " is alias, ignored\n";
 						continue;
-					}			
+					}
 
 					var variantArray = variantData[prop];
 					dojo.forEach(data[prop], function(element, index, list){

@@ -1,24 +1,25 @@
-dojo.provide("dojox.widget.Wizard");
-
-dojo.require("dijit.layout.StackContainer");
-dojo.require("dijit.layout.ContentPane");
-dojo.require("dijit.form.Button");
-
-dojo.require("dojo.i18n"); 
-dojo.requireLocalization("dijit", "common"); 
-dojo.requireLocalization("dojox.widget", "Wizard"); 
-
-dojo.declare(
-	"dojox.widget.Wizard",
-	[dijit.layout.StackContainer, dijit._Templated],
-	{
+define([
+	"dojo/_base/lang",
+	"dojo/_base/declare",
+	"dojo/_base/connect",
+	"dijit/layout/StackContainer",
+	"dijit/layout/ContentPane",
+	"dijit/form/Button",
+	"dijit/_TemplatedMixin",
+	"dijit/_WidgetsInTemplateMixin",
+	"dojo/i18n",
+	"dojo/text!./Wizard/Wizard.html",
+	"dojo/i18n!dijit/nls/common",
+	"dojo/i18n!./nls/Wizard"
+], function (lang, declare, connect, StackContainer, ContentPane, Button, _TemplatedMixin, _WidgetsInTemplateMixin, i18n, template) {
+  
+var Wizard = declare("dojox.widget.Wizard", [StackContainer, _TemplatedMixin, _WidgetsInTemplateMixin], {
 	// summary:
 	//		A set of panels that display sequentially, typically notating a step-by-step
 	//		procedure like an install
 	//
 	
-	widgetsInTemplate: true,
-	templateString: dojo.cache("dojox.widget", "Wizard/Wizard.html"),
+	templateString: template,
 	
 	// nextButtonLabel: String
 	//		Label override for the "Next" button.
@@ -48,8 +49,8 @@ dojo.declare(
 
 	postMixInProperties: function(){
 		this.inherited(arguments);
-		var labels = dojo.mixin({cancel: dojo.i18n.getLocalization("dijit", "common", this.lang).buttonCancel},
-			dojo.i18n.getLocalization("dojox.widget", "Wizard", this.lang));
+		var labels = lang.mixin({cancel: i18n.getLocalization("dijit", "common", this.lang).buttonCancel},
+			i18n.getLocalization("dojox.widget", "Wizard", this.lang));
 		var prop;
 		for(prop in labels){
 			if(!this[prop + "ButtonLabel"]){
@@ -59,9 +60,9 @@ dojo.declare(
 	},
 
 	startup: function(){
-		if(this._started){ 
-			//console.log('started'); 
-			return; 
+		if(this._started){
+			//console.log('started');
+			return;
 		}
 		this.inherited(arguments);
 		
@@ -69,8 +70,8 @@ dojo.declare(
 		this.connect(this.previousButton, "onClick", "back");
 
 		if(this.cancelFunction){
-			if(dojo.isString(this.cancelFunction)){
-				this.cancelFunction = dojo.getObject(this.cancelFunction);
+			if(lang.isString(this.cancelFunction)){
+				this.cancelFunction = lang.getObject(this.cancelFunction);
 			}
 			this.connect(this.cancelButton, "onClick", this.cancelFunction);
 		}else{
@@ -78,10 +79,14 @@ dojo.declare(
 		}
 		this.connect(this.doneButton, "onClick", "done");
 
-		this._subscription = dojo.subscribe(this.id + "-selectChild", dojo.hitch(this,"_checkButtons"));
-		this._checkButtons();
+		this._subscription = connect.subscribe(this.id + "-selectChild", lang.hitch(this,"_checkButtons"));
 		this._started = true;
 		
+	},
+	
+	resize: function(){
+		this.inherited(arguments);
+		this._checkButtons();
 	},
 
 	_checkButtons: function(){
@@ -106,7 +111,7 @@ dojo.declare(
 	},
 
 	_setButtonClass: function(button){
-		button.domNode.style.display = (this.hideDisabled && button.disabled) ? "none" : "";	
+		button.domNode.style.display = (this.hideDisabled && button.disabled) ? "none" : "";
 	},
 
 	_forward: function(){
@@ -122,21 +127,19 @@ dojo.declare(
 	},
 	
 	destroy: function(){
-		dojo.unsubscribe(this._subscription);
+		connect.unsubscribe(this._subscription);
 		this.inherited(arguments);
 	}
 	
 });
 
-dojo.declare("dojox.widget.WizardPane",
-	dijit.layout.ContentPane,
-	{
+declare("dojox.widget.WizardPane", ContentPane, {
 	// summary: A panel in a `dojox.widget.Wizard`
 	//
 	// description:
 	//	An extended ContentPane with additional hooks for passing named
 	//	functions to prevent the pane from going either forward or
-	//	backwards. 
+	//	backwards.
 	//
 	// canGoBack: Boolean
 	//		If true, then can move back to a previous panel (by clicking the "Previous" button)
@@ -145,7 +148,8 @@ dojo.declare("dojox.widget.WizardPane",
 	// passFunction: String
 	//		Name of function that checks if it's OK to advance to the next panel.
 	//		If it's not OK (for example, mandatory field hasn't been entered), then
-	//		returns an error message (String) explaining the reason.
+	//		returns an error message (String) explaining the reason. Can return null (pass)
+	//		or a Boolean (true == pass)
 	passFunction: null,
 	
 	// doneFunction: String
@@ -155,11 +159,11 @@ dojo.declare("dojox.widget.WizardPane",
 	startup: function(){
 		this.inherited(arguments);
 		if(this.isFirstChild){ this.canGoBack = false; }
-		if(dojo.isString(this.passFunction)){
-			this.passFunction = dojo.getObject(this.passFunction);
+		if(lang.isString(this.passFunction)){
+			this.passFunction = lang.getObject(this.passFunction);
 		}
-		if(dojo.isString(this.doneFunction) && this.doneFunction){
-			this.doneFunction = dojo.getObject(this.doneFunction);
+		if(lang.isString(this.doneFunction) && this.doneFunction){
+			this.doneFunction = lang.getObject(this.doneFunction);
 		}
 	},
 
@@ -177,7 +181,7 @@ dojo.declare("dojox.widget.WizardPane",
 		//		returns a string, it is assumed to be a custom error message, and
 		//		is alert()'ed
 		var r = true;
-		if(this.passFunction && dojo.isFunction(this.passFunction)){
+		if(this.passFunction && lang.isFunction(this.passFunction)){
 			var failMessage = this.passFunction();
 			switch(typeof failMessage){
 				case "boolean":
@@ -193,7 +197,11 @@ dojo.declare("dojox.widget.WizardPane",
 	},
 
 	done: function(){
-		if(this.doneFunction && dojo.isFunction(this.doneFunction)){ this.doneFunction(); }
+		if(this.doneFunction && lang.isFunction(this.doneFunction)){ this.doneFunction(); }
 	}
+
+});
+
+return Wizard;
 
 });

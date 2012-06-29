@@ -1,16 +1,27 @@
-dojo.provide("dijit._editor._Plugin");
-dojo.require("dijit._Widget");
-dojo.require("dijit.form.Button");
+define([
+	"dojo/_base/connect", // connect.connect
+	"dojo/_base/declare", // declare
+	"dojo/_base/lang", // lang.mixin, lang.hitch
+	"../form/Button"
+], function(connect, declare, lang, Button){
 
-dojo.declare("dijit._editor._Plugin", null, {
-	// summary
+// module:
+//		dijit/_editor/_Plugin
+// summary:
+//		Base class for a "plugin" to the editor, which is usually
+//		a single button on the Toolbar and some associated code
+
+
+var _Plugin = declare("dijit._editor._Plugin", null, {
+	// summary:
 	//		Base class for a "plugin" to the editor, which is usually
 	//		a single button on the Toolbar and some associated code
 
-	constructor: function(/*Object?*/args, /*DomNode?*/node){
+	constructor: function(/*Object?*/args){
 		this.params = args || {};
-		dojo.mixin(this, this.params);
+		lang.mixin(this, this.params);
 		this._connects=[];
+		this._attrPairNames = {};
 	},
 
 	// editor: [const] dijit.Editor
@@ -40,7 +51,12 @@ dojo.declare("dijit._editor._Plugin", null, {
 	//		Class of widget (ex: dijit.form.Button or dijit.form.FilteringSelect)
 	//		that is added to the toolbar to control this plugin.
 	//		This is used to instantiate the button, unless `button` itself is specified directly.
-	buttonClass: dijit.form.Button,
+	buttonClass: Button,
+
+	// disabled: Boolean
+	//		Flag to indicate if this plugin has been disabled and should do nothing
+	//		helps control button state, among other things.  Set via the setter api.
+	disabled: false,
 
 	getLabel: function(/*String*/key){
 		// summary:
@@ -61,7 +77,7 @@ dojo.declare("dijit._editor._Plugin", null, {
 				editor = this.editor,
 				className = this.iconClassPrefix+" "+this.iconClassPrefix + this.command.charAt(0).toUpperCase() + this.command.substr(1);
 			if(!this.button){
-				var props = dojo.mixin({
+				var props = lang.mixin({
 					label: label,
 					dir: editor.dir,
 					lang: editor.lang,
@@ -73,13 +89,17 @@ dojo.declare("dijit._editor._Plugin", null, {
 				this.button = new this.buttonClass(props);
 			}
 		}
+		if(this.get("disabled") && this.button){
+			this.button.set("disabled", this.get("disabled"));
+		}
 	},
 
 	destroy: function(){
 		// summary:
 		//		Destroy this plugin
 
-		dojo.forEach(this._connects, dojo.disconnect);
+		var h;
+		while(h = this._connects.pop()){ h.remove(); }
 		if(this.dropDown){
 			this.dropDown.destroyRecursive();
 		}
@@ -87,11 +107,11 @@ dojo.declare("dijit._editor._Plugin", null, {
 
 	connect: function(o, f, tf){
 		// summary:
-		//		Make a dojo.connect() that is automatically disconnected when this plugin is destroyed.
+		//		Make a connect.connect() that is automatically disconnected when this plugin is destroyed.
 		//		Similar to `dijit._Widget.connect`.
 		// tags:
 		//		protected
-		this._connects.push(dojo.connect(o, f, this, tf));
+		this._connects.push(connect.connect(o, f, this, tf));
 	},
 
 	updateState: function(){
@@ -110,9 +130,10 @@ dojo.declare("dijit._editor._Plugin", null, {
 			c = this.command,
 			checked, enabled;
 		if(!e || !e.isLoaded || !c.length){ return; }
+		var disabled = this.get("disabled");
 		if(this.button){
 			try{
-				enabled = e.queryCommandEnabled(c);
+				enabled = !disabled && e.queryCommandEnabled(c);
 				if(this.enabled !== enabled){
 					this.enabled = enabled;
 					this.button.set('disabled', !enabled);
@@ -146,11 +167,11 @@ dojo.declare("dijit._editor._Plugin", null, {
 		if(this.button && this.useDefaultCommand){
 			if(this.editor.queryCommandAvailable(this.command)){
 				this.connect(this.button, "onClick",
-					dojo.hitch(this.editor, "execCommand", this.command, this.commandArg)
+					lang.hitch(this.editor, "execCommand", this.command, this.commandArg)
 				);
 			}else{
 				// hide button because editor doesn't support command (due to browser limitations)
-				this.button.domNode.style.display = "none";			
+				this.button.domNode.style.display = "none";
 			}
 		}
 
@@ -168,5 +189,106 @@ dojo.declare("dijit._editor._Plugin", null, {
 			toolbar.addChild(this.button);
 		}
 		// console.debug("adding", this.button, "to:", toolbar);
+	},
+
+	set: function(/* attribute */ name, /* anything */ value){
+		// summary:
+		//		Set a property on a plugin
+		//	name:
+		//		The property to set.
+		//	value:
+		//		The value to set in the property.
+		// description:
+		//		Sets named properties on a plugin which may potentially be handled by a
+		// 		setter in the plugin.
+		// 		For example, if the plugin has a properties "foo"
+		//		and "bar" and a method named "_setFooAttr", calling:
+		//	|	plugin.set("foo", "Howdy!");
+		//		would be equivalent to writing:
+		//	|	plugin._setFooAttr("Howdy!");
+		//		and:
+		//	|	plugin.set("bar", 3);
+		//		would be equivalent to writing:
+		//	|	plugin.bar = 3;
+		//
+		//	set() may also be called with a hash of name/value pairs, ex:
+		//	|	plugin.set({
+		//	|		foo: "Howdy",
+		//	|		bar: 3
+		//	|	})
+		//	This is equivalent to calling set(foo, "Howdy") and set(bar, 3)
+		if(typeof name === "object"){
+			for(var x in name){
+				this.set(x, name[x]);
 	}
+			return this;
+		}
+		var names = this._getAttrNames(name);
+		if(this[names.s]){
+			// use the explicit setter
+			var result = this[names.s].apply(this, Array.prototype.slice.call(arguments, 1));
+		}else{
+			this._set(name, value);
+		}
+		return result || this;
+	},
+
+	get: function(name){
+		// summary:
+		//		Get a property from a plugin.
+		//	name:
+		//		The property to get.
+		// description:
+		//		Get a named property from a plugin. The property may
+		//		potentially be retrieved via a getter method. If no getter is defined, this
+		// 		just retrieves the object's property.
+		// 		For example, if the plugin has a properties "foo"
+		//		and "bar" and a method named "_getFooAttr", calling:
+		//	|	plugin.get("foo");
+		//		would be equivalent to writing:
+		//	|	plugin._getFooAttr();
+		//		and:
+		//	|	plugin.get("bar");
+		//		would be equivalent to writing:
+		//	|	plugin.bar;
+		var names = this._getAttrNames(name);
+		return this[names.g] ? this[names.g]() : this[name];
+	},
+
+	_setDisabledAttr: function(disabled){
+		// summary:
+		//		Function to set the plugin state and call updateState to make sure the
+		//		button is updated appropriately.
+		this.disabled = disabled;
+		this.updateState();
+	},
+
+	_getAttrNames: function(name){
+		// summary:
+		//		Helper function for get() and set().
+		//		Caches attribute name values so we don't do the string ops every time.
+		// tags:
+		//		private
+
+		var apn = this._attrPairNames;
+		if(apn[name]){ return apn[name]; }
+		var uc = name.charAt(0).toUpperCase() + name.substr(1);
+		return (apn[name] = {
+			s: "_set"+uc+"Attr",
+			g: "_get"+uc+"Attr"
+		});
+	},
+
+	_set: function(/*String*/ name, /*anything*/ value){
+		// summary:
+		//		Helper function to set new value for specified attribute
+		this[name] = value;
+	}
+});
+
+// Hash mapping plugin name to factory, used for registering plugins
+_Plugin.registry = {};
+
+return _Plugin;
+
 });

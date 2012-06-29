@@ -1,5 +1,9 @@
-dojo.provide("dojo.rpc.JsonService");
-dojo.require("dojo.rpc.RpcService");
+define(["../main", "./RpcService"], function(dojo) {
+	// module:
+	//		dojo/rpc/JsonService
+	// summary:
+	//		TODOC
+
 
 dojo.declare("dojo.rpc.JsonService", dojo.rpc.RpcService, {
 		bustCache: false,
@@ -36,7 +40,7 @@ dojo.declare("dojo.rpc.JsonService", dojo.rpc.RpcService, {
 				url: url||this.serviceUrl,
 				postData: this.createRequest(method, parameters),
 				contentType: this.contentType,
-				timeout: this.timeout, 
+				timeout: this.timeout,
 				handleAs: "json-comment-optional"
 			});
 			def.addCallbacks(this.resultCallback(deferredRequestHandler), this.errorCallback(deferredRequestHandler));
@@ -49,10 +53,9 @@ dojo.declare("dojo.rpc.JsonService", dojo.rpc.RpcService, {
 			//		The name of the method we are creating the requst for
 			//	params: array
 			//		The array of parameters for this request;
-			
+
 			var req = { "params": params, "method": method, "id": ++this.lastSubmissionId };
-			var data = dojo.toJson(req);
-			return data;
+			return dojo.toJson(req);
 		},
 
 		parseResults: function(/*anything*/obj){
@@ -77,3 +80,6 @@ dojo.declare("dojo.rpc.JsonService", dojo.rpc.RpcService, {
 		}
 	}
 );
+
+return dojo.rpc.JsonService;
+});

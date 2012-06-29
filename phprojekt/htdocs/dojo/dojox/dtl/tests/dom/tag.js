@@ -3,8 +3,9 @@ dojo.provide("dojox.dtl.tests.dom.tag");
 dojo.require("dojox.dtl.dom");
 dojo.require("dojox.dtl.Context");
 dojo.require("dojox.dtl.tests.dom.util");
+dojo.require("dojo._base.sniff");
 
-doh.register("dojox.dtl.dom.tag", 
+doh.register("dojox.dtl.dom.tag",
 	[
 		function test_errors(t){
 			var dd = dojox.dtl;

@@ -1,13 +1,18 @@
-dojo.provide("dojox.editor.plugins.Smiley");
+define([
+	"dojo",
+	"dijit",
+	"dojox",
+	"dijit/_editor/_Plugin",
+	"dijit/form/DropDownButton",
+	"dojo/_base/connect",
+	"dojo/_base/declare",
+	"dojo/i18n",
+	"dojox/editor/plugins/_SmileyPalette",
+	"dojox/html/format",
+	"dojo/i18n!dojox/editor/plugins/nls/Smiley"
+], function(dojo, dijit, dojox) {
+
 dojo.experimental("dojox.editor.plugins.Smiley");
-
-dojo.require("dojo.i18n");
-dojo.require("dijit._editor._Plugin");
-dojo.require("dijit.form.ToggleButton");
-dojo.require("dijit.form.DropDownButton");
-dojo.require("dojox.editor.plugins._SmileyPalette");
-
-dojo.requireLocalization("dojox.editor.plugins", "Smiley");
 
 dojo.declare("dojox.editor.plugins.Smiley", dijit._editor._Plugin, {
 	// summary:
@@ -51,6 +56,12 @@ dojo.declare("dojox.editor.plugins.Smiley", dijit._editor._Plugin, {
 		});
 		this.emoticonImageRegexp = new RegExp("class=(\"|\')" + this.emoticonImageClass + "(\"|\')");
 	},
+	
+	updateState: function(){
+		// summary:
+		//		Over-ride for button state control for disabled to work.
+		this.button.set("disabled", this.get("disabled"));
+	},
 
 	setEditor: function(editor){
 		// summary:
@@ -61,6 +72,30 @@ dojo.declare("dojox.editor.plugins.Smiley", dijit._editor._Plugin, {
 		this._initButton();
 		this.editor.contentPreFilters.push(dojo.hitch(this, this._preFilterEntities));
 		this.editor.contentPostFilters.push(dojo.hitch(this, this._postFilterEntities));
+		
+		if(dojo.isFF){
+			// This is a workaround for a really odd Firefox bug with
+			// leaving behind phantom cursors when deleting smiley images.
+			// See: #13299
+			var deleteHandler = dojo.hitch(this, function(){
+				var editor = this.editor;
+				// have to use timers here because the event has to happen
+				// (bubble), then we can poke the dom.
+				setTimeout(function(){
+					if(editor.editNode){
+						dojo.style(editor.editNode, "opacity", "0.99");
+						// Allow it to apply, then undo it to trigger cleanup of those
+						// phantoms.
+						setTimeout(function(){if(editor.editNode) { dojo.style(editor.editNode, "opacity", "");} }, 0);
+					}
+				}, 0);
+				return true;
+			})
+			this.editor.onLoadDeferred.addCallback(dojo.hitch(this, function(){
+				this.editor.addKeyHandler(dojo.keys.DELETE, false, false, deleteHandler);
+				this.editor.addKeyHandler(dojo.keys.BACKSPACE, false, false, deleteHandler);
+			}));
+		}
 	},
 
 	_preFilterEntities: function(/*String content passed in*/ value){
@@ -89,7 +124,7 @@ dojo.declare("dojox.editor.plugins.Smiley", dijit._editor._Plugin, {
 		// summary:
 		//		Pre-filter for editor to convert strings like [:-)] into an <img> of the corresponding smiley
 		var emoticon = dojox.editor.plugins.Emoticon.fromAscii(ascii);
-		return emoticon ? emoticon.imgHtml(this.emoticonImageClass) : ascii;
+		return emoticon ? emoticon.imgHtml(this.emoticonImageClass) : str;
 	},
 
 	_encode: function(str){
@@ -113,4 +148,8 @@ dojo.subscribe(dijit._scopeName + ".Editor.getPlugin",null,function(o){
 	if(o.args.name === "smiley"){
 		o.plugin = new dojox.editor.plugins.Smiley();
 	}
+});
+
+return dojox.editor.plugins.Smiley;
+
 });

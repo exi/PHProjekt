@@ -1,10 +1,21 @@
-dojo.provide("dijit.form.HorizontalRule");
+define([
+	"dojo/_base/declare",	// declare
+	"../_Widget",
+	"../_TemplatedMixin"
+], function(declare, _Widget, _TemplatedMixin){
 
-dojo.require("dijit._Widget");
-dojo.require("dijit._Templated");
+/*=====
+	var _Widget = dijit._Widget;
+	var _TemplatedMixin = dijit._TemplatedMixin;
+=====*/
 
-dojo.declare("dijit.form.HorizontalRule", [dijit._Widget, dijit._Templated],
-{
+// module:
+//		dijit/form/HorizontalRule
+// summary:
+//		Hash marks for `dijit.form.HorizontalSlider`
+
+
+return declare("dijit.form.HorizontalRule", [_Widget, _TemplatedMixin], {
 	// summary:
 	//		Hash marks for `dijit.form.HorizontalSlider`
 
@@ -27,7 +38,7 @@ dojo.declare("dijit.form.HorizontalRule", [dijit._Widget, dijit._Templated],
 	_positionSuffix: '%;',
 	_suffix: '"></div>',
 
-	_genHTML: function(pos, ndx){
+	_genHTML: function(pos){
 		return this._positionPrefix + pos + this._positionSuffix + this.ruleStyle + this._suffix;
 	},
 
@@ -35,7 +46,9 @@ dojo.declare("dijit.form.HorizontalRule", [dijit._Widget, dijit._Templated],
 	//		VerticalRule will override this...
 	_isHorizontal: true,
 
-	postCreate: function(){
+	buildRendering: function(){
+		this.inherited(arguments);
+
 		var innerHTML;
 		if(this.count == 1){
 			innerHTML = this._genHTML(50, 0);
@@ -58,4 +71,6 @@ dojo.declare("dijit.form.HorizontalRule", [dijit._Widget, dijit._Templated],
 		}
 		this.domNode.innerHTML = innerHTML;
 	}
+});
+
 });

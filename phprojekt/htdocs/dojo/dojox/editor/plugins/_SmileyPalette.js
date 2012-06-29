@@ -1,17 +1,20 @@
-dojo.provide("dojox.editor.plugins._SmileyPalette");
-
-dojo.require("dijit._Widget");
-dojo.require("dijit._Templated");
-dojo.require("dojo.i18n");
-
-dojo.require("dijit._PaletteMixin");
-
-dojo.requireLocalization("dojox.editor.plugins", "Smiley");
+define([
+	"dojo",
+	"dijit",
+	"dojox",
+	"dijit/_Widget",
+	"dijit/_TemplatedMixin",
+	"dijit/_PaletteMixin",
+	"dojo/_base/connect",
+	"dojo/_base/declare",
+	"dojo/i18n",
+	"dojo/i18n!dojox/editor/plugins/nls/Smiley"
+], function(dojo, dijit, dojox) {
 
 dojo.experimental("dojox.editor.plugins._SmileyPalette");
 
 dojo.declare("dojox.editor.plugins._SmileyPalette",
-	[dijit._Widget, dijit._Templated, dijit._PaletteMixin],
+	[dijit._Widget, dijit._TemplatedMixin, dijit._PaletteMixin],
 	{
 	// summary:
 	//		A keyboard accessible emoticon-picking widget (for inserting smiley characters)
@@ -27,7 +30,7 @@ dojo.declare("dojox.editor.plugins._SmileyPalette",
 	// |	picker.startup();
 
 	//		The template of this widget.
-	templateString: 
+	templateString:
 		'<table class="dijitInline dijitEditorSmileyPalette dijitPaletteTable"' +
 		' cellSpacing=0 cellPadding=0><tbody dojoAttachPoint="gridNode"></tbody></table>',
 
@@ -54,7 +57,7 @@ dojo.declare("dojox.editor.plugins._SmileyPalette",
 		var emoticonI18n = {};
 		for(var name in i18n){
 			if(name.substr(0,8) == "emoticon"){
-				emoticonI18n[name.substr(8).toLowerCase()] = i18n[name]; 
+				emoticonI18n[name.substr(8).toLowerCase()] = i18n[name];
 			}
 		}
         this._preparePalette(
@@ -140,3 +143,7 @@ dojox.editor.plugins.Emoticon.fromAscii = function(/*String*/str){
 	}
 	return null;
 };
+
+return dojox.editor.plugins._SmileyPalette;
+
+});

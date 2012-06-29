@@ -8,20 +8,20 @@
 </style>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <script type="text/javascript" src="../../../dojo/dojo.js" djConfig="isDebug: true"></script>
-<script type="text/javascript" src="../../../dojo/_base/Color.js"></script>
-<script type="text/javascript" src="../_base.js"></script>
-<script type="text/javascript" src="../shape.js"></script>
-<script type="text/javascript" src="../path.js"></script>
-<script type="text/javascript" src="../arc.js"></script>
-<!--<script type="text/javascript" src="../vml.js"></script>-->
-<!--<script type="text/javascript" src="../svg.js"></script>-->
-<!--<script type="text/javascript" src="../canvas.js"></script>-->
-<!--<script type="text/javascript" src="../silverlight.js"></script>-->
 <script type="text/javascript">
 dojo.require("dojox.gfx");
 dojo.require("dojo.colors");
+dojo.require("dojox.gfx");
+dojo.require("dojox.gfx.shape");
+dojo.require("dojox.gfx.path");
+dojo.require("dojox.gfx.arc");
 
-makeShapes = function(){
+createSurface = function(){
+	var surface = dojox.gfx.createSurface("grad", 300, 300);
+	surface.whenLoaded(makeShapes);
+};
+
+makeShapes = function(surface){
 	var lg1 = {
 		type: "linear",
 		x1: 0, y1: 0,
@@ -47,7 +47,6 @@ makeShapes = function(){
 			{ offset: 0.3, color: "yellow" }
 		]
 	};
-	var surface = dojox.gfx.createSurface(dojo.byId("grad"), 300, 300);
 	var group = surface.createGroup();
 	var rect1 = surface.createRect({ 
 		width:  300,
@@ -63,7 +62,7 @@ makeShapes = function(){
 	group.add(rect1);
 	group.add(rect2);
 };
-dojo.addOnLoad(makeShapes);
+dojo.addOnLoad(createSurface);
 </script>
 <style>
 v:group { text-align: left; }

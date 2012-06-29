@@ -1,12 +1,10 @@
-dojo.provide("dojox.io.xhrPlugins");
-dojo.require("dojo.AdapterRegistry");
-dojo.require("dojo._base.xhr");
+define(["dojo/_base/kernel", "dojo/_base/xhr", "dojo/AdapterRegistry"], function(dojo, xhr, AdapterRegistry){
+	dojo.getObject("io.xhrPlugins", true, dojox);
 
-(function() {
 	var registry;
 	var plainXhr;
 	function getPlainXhr(){
-		return plainXhr = dojox.io.xhrPlugins.plainXhr = plainXhr || dojo._defaultXhr || dojo.xhr;
+		return plainXhr = dojox.io.xhrPlugins.plainXhr = plainXhr || dojo._defaultXhr || xhr;
 	}
 	dojox.io.xhrPlugins.register = function(){
 		//	summary:
@@ -14,14 +12,14 @@ dojo.require("dojo._base.xhr");
 		// 		xhr handlers
 		var plainXhr = getPlainXhr();
 		if(!registry){
-			registry = new dojo.AdapterRegistry();
+			registry = new AdapterRegistry();
 			// replaces the default xhr() method. Can we just use connect() instead?
 			dojo[dojo._defaultXhr ? "_defaultXhr" : "xhr"] = function(/*String*/ method, /*dojo.__XhrArgs*/ args, /*Boolean?*/ hasBody){
-				return registry.match.apply(registry,arguments);						
+				return registry.match.apply(registry,arguments);
 			};
 			registry.register(
 				"xhr",
-				function(method,args){ 
+				function(method,args){
 					if(!args.url.match(/^\w*:\/\//)){
 						// if it is not an absolute url (or relative to the
 						// protocol) we can use this plain XHR
@@ -54,8 +52,8 @@ dojo.require("dojo._base.xhr");
 				// this will match on URL
 
 				// really can be used for anything, but plain XHR will take
-				// precedent by order of loading 
-				return true; 
+				// precedent by order of loading
+				return true;
 			},
 			function(method,args,hasBody){
 				args.url = proxyUrl + encodeURIComponent(args.url);
@@ -67,16 +65,16 @@ dojo.require("dojo._base.xhr");
 		//	summary:
 		// 		Adds W3C Cross site XHR or XDomainRequest handling for the given URL prefix
 		//
-		// 	url: 
-		//		Requests that start with this URL will be considered for using 
+		// 	url:
+		//		Requests that start with this URL will be considered for using
 		// 		cross-site XHR.
 		//
-		// 	httpAdapter: This allows for adapting HTTP requests that could not otherwise be 
+		// 	httpAdapter: This allows for adapting HTTP requests that could not otherwise be
 		// 		sent with XDR, so you can use a convention for headers and PUT/DELETE methods.
 		//
 		//	description:
-		// 		This can be used for servers that support W3C cross-site XHR. In order for 
-		// 		a server to allow a client to make cross-site XHR requests, 
+		// 		This can be used for servers that support W3C cross-site XHR. In order for
+		// 		a server to allow a client to make cross-site XHR requests,
 		// 		it should respond with the header like:
 		//	|	Access-Control: allow <*>
 		//		see: http://www.w3.org/TR/access-control/
@@ -94,11 +92,11 @@ dojo.require("dojo._base.xhr");
 		}
 		dojox.io.xhrPlugins.register(
 			"cs-xhr",
-			function(method,args){ 
-				return (csXhrSupport || 
-						(window.XDomainRequest && args.sync !== true && 
+			function(method,args){
+				return (csXhrSupport ||
+						(window.XDomainRequest && args.sync !== true &&
 							(method == "GET" || method == "POST" || httpAdapter))) &&
-					(args.url.substring(0,url.length) == url); 
+					(args.url.substring(0,url.length) == url);
 			},
 			csXhrSupport ? plainXhr : function(){
 				var normalXhrObj = dojo._xhrObj;
@@ -108,12 +106,12 @@ dojo.require("dojo._base.xhr");
 					var xdr = new XDomainRequest();
 					xdr.readyState = 1;
 					xdr.setRequestHeader = function(){}; // just absorb them, we can't set headers :/
-					xdr.getResponseHeader = function(header){ // this is the only header we can access 
+					xdr.getResponseHeader = function(header){ // this is the only header we can access
 						return header == "Content-Type" ? xdr.contentType : null;
 					}
 					// adapt the xdr handlers to xhr
 					function handler(status, readyState){
-						return function(){							
+						return function(){
 							xdr.readyState = readyState;
 							xdr.status = status;
 						}
@@ -125,7 +123,7 @@ dojo.require("dojo._base.xhr");
 				};
 				var dfd = (httpAdapter ? httpAdapter(getPlainXhr()) : getPlainXhr()).apply(dojo,arguments);
 				dojo._xhrObj = normalXhrObj;
-				return dfd; 
+				return dfd;
 			}
 		);
 	};
@@ -167,7 +165,6 @@ dojo.require("dojo._base.xhr");
 			return plainXhr.call(dojo,method,args,hasBody);
 		};
 	};
-})();
 
-
-
+	return dojox.io.xhrPlugins;
+});

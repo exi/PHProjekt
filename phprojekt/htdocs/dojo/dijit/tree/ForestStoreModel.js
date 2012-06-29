@@ -1,17 +1,39 @@
-dojo.provide("dijit.tree.ForestStoreModel");
+define([
+	"dojo/_base/array", // array.indexOf array.some
+	"dojo/_base/declare", // declare
+	"dojo/_base/lang", // lang.hitch
+	"dojo/_base/window", // win.global
+	"./TreeStoreModel"
+], function(array, declare, lang, win, TreeStoreModel){
 
-dojo.require("dijit.tree.TreeStoreModel");
+/*=====
+var TreeStoreModel = dijit.tree.TreeStoreModel;
+=====*/
 
-dojo.declare("dijit.tree.ForestStoreModel", dijit.tree.TreeStoreModel, {
+// module:
+//		dijit/tree/ForestStoreModel
+// summary:
+//		Interface between a dijit.Tree and a dojo.data store that doesn't have a root item,
+//		a.k.a. a store that has multiple "top level" items.
+
+return declare("dijit.tree.ForestStoreModel", TreeStoreModel, {
 	// summary:
-	//		Interface between Tree and a dojo.store that doesn't have a root item,
-	//		i.e. has multiple "top level" items.
+	//		Interface between a dijit.Tree and a dojo.data store that doesn't have a root item,
+	//		a.k.a. a store that has multiple "top level" items.
 	//
 	// description
-	//		Use this class to wrap a dojo.store, making all the items matching the specified query
+	//		Use this class to wrap a dojo.data store, making all the items matching the specified query
 	//		appear as children of a fabricated "root item".  If no query is specified then all the
 	//		items returned by fetch() on the underlying store become children of the root item.
-	//		It allows dijit.Tree to assume a single root item, even if the store doesn't have one.
+	//		This class allows dijit.Tree to assume a single root item, even if the store doesn't have one.
+	//
+	//		When using this class the developer must override a number of methods according to their app and
+	//		data, including:
+	//			- onNewRootItem
+	//			- onAddToRoot
+	//			- onLeaveRoot
+	//			- onNewItem
+	//			- onSetItem
 
 	// Parameters to constructor
 
@@ -71,7 +93,7 @@ dojo.declare("dijit.tree.ForestStoreModel", dijit.tree.TreeStoreModel, {
 			}else{
 				this.store.fetch({
 					query: this.query,
-					onComplete: dojo.hitch(this, function(items){
+					onComplete: lang.hitch(this, function(items){
 						this.root.children = items;
 						callback(items);
 					}),
@@ -92,7 +114,7 @@ dojo.declare("dijit.tree.ForestStoreModel", dijit.tree.TreeStoreModel, {
 
 	fetchItemByIdentity: function(/* object */ keywordArgs){
 		if(keywordArgs.identity == this.root.id){
-			var scope = keywordArgs.scope?keywordArgs.scope:dojo.global;
+			var scope = keywordArgs.scope?keywordArgs.scope:win.global;
 			if(keywordArgs.onItem){
 				keywordArgs.onItem.call(scope, this.root);
 			}
@@ -124,7 +146,7 @@ dojo.declare("dijit.tree.ForestStoreModel", dijit.tree.TreeStoreModel, {
 		}
 	},
 
-	onNewRootItem: function(args){
+	onNewRootItem: function(/* dojo.dnd.Item */ /*===== args =====*/){
 		// summary:
 		//		User can override this method to modify a new element that's being
 		//		added to the root of the tree, for example to add a flag like root=true
@@ -142,12 +164,12 @@ dojo.declare("dijit.tree.ForestStoreModel", dijit.tree.TreeStoreModel, {
 				this.onLeaveRoot(childItem);
 			}
 		}
-		dijit.tree.TreeStoreModel.prototype.pasteItem.call(this, childItem,
+		this.inherited(arguments, [childItem,
 			oldParentItem === this.root ? null : oldParentItem,
 			newParentItem === this.root ? null : newParentItem,
 			bCopy,
 			insertIndex
-		);
+		]);
 		if(newParentItem === this.root){
 			// It's onAddToRoot()'s responsibility to modify the item so it matches
 			// this.query... thus triggering an onChildrenChange() event to notify the Tree
@@ -190,12 +212,12 @@ dojo.declare("dijit.tree.ForestStoreModel", dijit.tree.TreeStoreModel, {
 		var oldChildren = this.root.children || [];
 		this.store.fetch({
 			query: this.query,
-			onComplete: dojo.hitch(this, function(newChildren){
+			onComplete: lang.hitch(this, function(newChildren){
 				this.root.children = newChildren;
 
 				// If the list of children or the order of children has changed...
 				if(oldChildren.length != newChildren.length ||
-					dojo.some(oldChildren, function(item, idx){ return newChildren[idx] != item;})){
+					array.some(oldChildren, function(item, idx){ return newChildren[idx] != item;})){
 					this.onChildrenChange(this.root, newChildren);
 				}
 			})
@@ -211,9 +233,9 @@ dojo.declare("dijit.tree.ForestStoreModel", dijit.tree.TreeStoreModel, {
 		//		a new item is created, since any new item could be a top level item (even in
 		//		addition to being a child of another item, since items can have multiple parents).
 		//
-		//		Developers can override this function to do something more efficient if they can
-		//		detect which items are possible top level items (based on the item and the
-		//		parentInfo parameters).  Often all top level items have parentInfo==null, but
+		//		If developers can detect which items are possible top level items (based on the item and the
+		//		parentInfo parameters), they should override this method to only call _requeryTop() for top
+		//		level items.  Often all top level items have parentInfo==null, but
 		//		that will depend on which store you use and what your data is like.
 		// tags:
 		//		extension
@@ -228,12 +250,36 @@ dojo.declare("dijit.tree.ForestStoreModel", dijit.tree.TreeStoreModel, {
 
 		// check if this was a child of root, and if so send notification that root's children
 		// have changed
-		if(dojo.indexOf(this.root.children, item) != -1){
+		if(array.indexOf(this.root.children, item) != -1){
 			this._requeryTop();
 		}
 
 		this.inherited(arguments);
+	},
+
+	onSetItem: function(/* item */ item,
+					/* attribute-name-string */ attribute,
+					/* object | array */ oldValue,
+					/* object | array */ newValue){
+		// summary:
+		//		Updates the tree view according to changes to an item in the data store.
+		//		Developers should override this method to be more efficient based on their app/data.
+		// description:
+		//		Handles updates to an item's children by calling onChildrenChange(), and
+		//		other updates to an item by calling onChange().
+		//
+		//		Also, any change to any item re-executes the query for the tree's top-level items,
+		//		since this modified item may have started/stopped matching the query for top level items.
+		//
+		//		If possible, developers should override this function to only call _requeryTop() when
+		//		the change to the item has caused it to stop/start being a top level item in the tree.
+		// tags:
+		//		extension
+
+		this._requeryTop();
+		this.inherited(arguments);
 	}
+
 });
 
-
+});

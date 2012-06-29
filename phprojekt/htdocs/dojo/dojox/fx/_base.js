@@ -1,19 +1,21 @@
-dojo.provide("dojox.fx._base");
-// summary: Experimental and extended Animations beyond Dojo Core / Base functionality. 
+define(["dojo/_base/array","dojo/_base/lang", "dojo/_base/fx", "dojo/fx", "dojo/dom", "dojo/dom-style",
+	    "dojo/dom-geometry", "dojo/_base/connect", "dojo/_base/html"],
+	function(arrayUtil, lang, baseFx, coreFx, dom, domStyle, domGeom, connectUtil, htmlUtil){
+// summary: Experimental and extended Animations beyond Dojo Core / Base functionality.
 //	Provides advanced Lines, Animations, and convenience aliases.
-dojo.require("dojo.fx"); 
-
-dojo.mixin(dojox.fx, {
+var dojoxFx = lang.getObject("dojox.fx", true);
+/*
+lang.mixin(dojox.fx, {
 
 	// anim: Function
 	//	Alias of `dojo.anim` - the shorthand `dojo.animateProperty` with auto-play
-	anim: dojo.anim,
+	anim: dojo.fx.anim,
 
 	// animateProperty: Function
 	//	Alias of `dojo.animateProperty` - animate any CSS property
-	animateProperty: dojo.animateProperty,
+	animateProperty: dojox.fx.animateProperty,
 
-	// fadeTo: Function 
+	// fadeTo: Function
 	//		Fade an element from an opacity to an opacity.
 	//		Omit `start:` property to detect. `end:` property is required.
 	//		Ultimately an alias to `dojo._fade`
@@ -48,20 +50,21 @@ dojo.mixin(dojox.fx, {
 	wipeOut: dojo.fx.wipeOut
 
 });
+*/
 
-dojox.fx.sizeTo = function(/* Object */args){
-	// summary: 
+dojoxFx.sizeTo = function(/* Object */args){
+	// summary:
 	//		Creates an animation that will size a node
 	//
 	// description:
 	//		Returns an animation that will size the target node
 	//		defined in args Object about it's center to
-	//		a width and height defined by (args.width, args.height), 
+	//		a width and height defined by (args.width, args.height),
 	//		supporting an optional method: chain||combine mixin
-	//		(defaults to chain).	
+	//		(defaults to chain).
 	//
 	//	- works best on absolutely or relatively positioned elements
-	//	
+	//
 	// example:
 	//	|	// size #myNode to 400px x 200px over 1 second
 	//	|	dojo.fx.sizeTo({
@@ -73,18 +76,18 @@ dojox.fx.sizeTo = function(/* Object */args){
 	//	|	}).play();
 	//
 
-	var node = args.node = dojo.byId(args.node),
+	var node = args.node = dom.byId(args.node),
 		abs = "absolute";
 
-	var method = args.method || "chain"; 
+	var method = args.method || "chain";
 	if(!args.duration){ args.duration = 500; } // default duration needed
-	if(method == "chain"){ args.duration = Math.floor(args.duration / 2); } 
+	if(method == "chain"){ args.duration = Math.floor(args.duration / 2); }
 	
 	var top, newTop, left, newLeft, width, height = null;
 
 	var init = (function(n){
 		return function(){
-			var cs = dojo.getComputedStyle(n),
+			var cs = domStyle.getComputedStyle(n),
 				pos = cs.position,
 				w = cs.width,
 				h = cs.height
@@ -95,11 +98,11 @@ dojox.fx.sizeTo = function(/* Object */args){
 			width = (w == "auto" ? 0 : parseInt(w));
 			height = (h == "auto" ? 0 : parseInt(h));
 			
-			newLeft = left - Math.floor((args.width - width) / 2); 
-			newTop = top - Math.floor((args.height - height) / 2); 
+			newLeft = left - Math.floor((args.width - width) / 2);
+			newTop = top - Math.floor((args.height - height) / 2);
 
 			if(pos != abs && pos != 'relative'){
-				var ret = dojo.coords(n, true);
+				var ret = domStyle.coords(n, true);
 				top = ret.y;
 				left = ret.x;
 				n.style.position = abs;
@@ -109,7 +112,7 @@ dojox.fx.sizeTo = function(/* Object */args){
 		}
 	})(node);
 
-	var anim1 = dojo.animateProperty(dojo.mixin({
+	var anim1 = baseFx.animateProperty(lang.mixin({
 		properties: {
 			height: function(){
 				init();
@@ -120,7 +123,7 @@ dojox.fx.sizeTo = function(/* Object */args){
 			}
 		}
 	}, args));
-	var anim2 = dojo.animateProperty(dojo.mixin({
+	var anim2 = baseFx.animateProperty(lang.mixin({
 		properties: {
 			width: function(){
 				return { start: width, end: args.width || 0 }
@@ -131,38 +134,38 @@ dojox.fx.sizeTo = function(/* Object */args){
 		}
 	}, args));
 
-	var anim = dojo.fx[(args.method == "combine" ? "combine" : "chain")]([anim1, anim2]);
+	var anim = coreFx[(args.method == "combine" ? "combine" : "chain")]([anim1, anim2]);
 	return anim; // dojo.Animation
 
 };
 
-dojox.fx.slideBy = function(/* Object */args){
-	// summary: 
+dojoxFx.slideBy = function(/* Object */args){
+	// summary:
 	//		Returns an animation to slide a node by a defined offset.
 	//
 	// description:
 	//		Returns an animation that will slide a node (args.node) from it's
 	//		current position to it's current posision plus the numbers defined
-	//		in args.top and args.left. standard dojo.fx mixin's apply. 
-	//	
+	//		in args.top and args.left. standard dojo.fx mixin's apply.
+	//
 	// example:
 	//	|	// slide domNode 50px down, and 22px left
-	//	|	dojox.fx.slideBy({ 
-	//	|		node: domNode, duration:400, 
-	//	|		top: 50, left: -22 
+	//	|	dojox.fx.slideBy({
+	//	|		node: domNode, duration:400,
+	//	|		top: 50, left: -22
 	//	|	}).play();
 
-	var node = args.node = dojo.byId(args.node),
+	var node = args.node = dom.byId(args.node),
 		top, left;
 
 	var init = (function(n){
 		return function(){
-			var cs = dojo.getComputedStyle(n);
+			var cs = domStyle.getComputedStyle(n);
 			var pos = cs.position;
 			top = (pos == 'absolute' ? n.offsetTop : parseInt(cs.top) || 0);
 			left = (pos == 'absolute' ? n.offsetLeft : parseInt(cs.left) || 0);
 			if(pos != 'absolute' && pos != 'relative'){
-				var ret = dojo.coords(n, true);
+				var ret = domGeom.coords(n, true);
 				top = ret.y;
 				left = ret.x;
 				n.style.position = "absolute";
@@ -173,23 +176,23 @@ dojox.fx.slideBy = function(/* Object */args){
 	})(node);
 	init();
 	
-	var _anim = dojo.animateProperty(dojo.mixin({
+	var _anim = baseFx.animateProperty(lang.mixin({
 		properties: {
 			// FIXME: is there a way to update the _Line after creation?
 			// null start values allow chaining to work, animateProperty will
 			// determine them for us (except in ie6? -- ugh)
 			top: top + (args.top || 0),
-			left: left + (args.left || 0) 
+			left: left + (args.left || 0)
 		}
 	}, args));
-	dojo.connect(_anim, "beforeBegin", _anim, init);
+	connectUtil.connect(_anim, "beforeBegin", _anim, init);
 	return _anim; // dojo.Animation
 };
 
-dojox.fx.crossFade = function(/* Object */args){
-	// summary: 
+dojoxFx.crossFade = function(/* Object */args){
+	// summary:
 	//		Returns an animation cross fading two element simultaneously
-	// 
+	//
 	// args:
 	//	args.nodes: Array - two element array of domNodes, or id's
 	//
@@ -197,41 +200,41 @@ dojox.fx.crossFade = function(/* Object */args){
 	//
 
 	// simple check for which node is visible, maybe too simple?
-	var node1 = args.nodes[0] = dojo.byId(args.nodes[0]),
-		op1 = dojo.style(node1,"opacity"),
-		node2 = args.nodes[1] = dojo.byId(args.nodes[1]),
-		op2 = dojo.style(node2, "opacity")
+	var node1 = args.nodes[0] = dom.byId(args.nodes[0]),
+		op1 = htmlUtil.style(node1,"opacity"),
+		node2 = args.nodes[1] = dom.byId(args.nodes[1]),
+		op2 = htmlUtil.style(node2, "opacity")
 	;
 	
-	var _anim = dojo.fx.combine([
-		dojo[(op1 == 0 ? "fadeIn" : "fadeOut")](dojo.mixin({
+	var _anim = coreFx.combine([
+		baseFx[(op1 == 0 ? "fadeIn" : "fadeOut")](lang.mixin({
 			node: node1
 		},args)),
-		dojo[(op1 == 0 ? "fadeOut" : "fadeIn")](dojo.mixin({
+		baseFx[(op1 == 0 ? "fadeOut" : "fadeIn")](lang.mixin({
 			node: node2
 		},args))
 	]);
 	return _anim; // dojo.Animation
 };
 
-dojox.fx.highlight = function(/*Object*/ args){
-	// summary: 
+dojoxFx.highlight = function(/*Object*/ args){
+	// summary:
 	//		Highlight a node
 	//
 	// description:
 	//		Returns an animation that sets the node background to args.color
 	//		then gradually fades back the original node background color
-	//	
+	//
 	// example:
-	//	|	dojox.fx.highlight({ node:"foo" }).play(); 
+	//	|	dojox.fx.highlight({ node:"foo" }).play();
 
-	var node = args.node = dojo.byId(args.node);
+	var node = args.node = dom.byId(args.node);
 
 	args.duration = args.duration || 400;
 	
 	// Assign default color light yellow
 	var startColor = args.color || '#ffff99',
-		endColor = dojo.style(node, "backgroundColor")
+		endColor = htmlUtil.style(node, "backgroundColor")
 	;
 
 	// safari "fix"
@@ -244,14 +247,14 @@ dojox.fx.highlight = function(/*Object*/ args){
 		endColor = "transparent";
 	}
 
-	var anim = dojo.animateProperty(dojo.mixin({
+	var anim = baseFx.animateProperty(lang.mixin({
 		properties: {
 			backgroundColor: { start: startColor, end: endColor }
 		}
 	}, args));
 
 	if(endColor == "transparent"){
-		dojo.connect(anim, "onEnd", anim, function(){
+		connectUtil.connect(anim, "onEnd", anim, function(){
 			node.style.backgroundColor = endColor;
 		});
 	}
@@ -260,17 +263,17 @@ dojox.fx.highlight = function(/*Object*/ args){
 };
 
  
-dojox.fx.wipeTo = function(/*Object*/ args){
+dojoxFx.wipeTo = function(/*Object*/ args){
 	// summary:
 	//		Animate a node wiping to a specific width or height
-	//	
+	//
 	// description:
 	//		Returns an animation that will expand the
 	//		node defined in 'args' object from it's current to
 	//		the height or width value given by the args object.
 	//
 	//		default to height:, so leave height null and specify width:
-	//		to wipeTo a width. note: this may be deprecated by a 
+	//		to wipeTo a width. note: this may be deprecated by a
 	//
 	//		Note that the final value should not include
 	//		units and should be an integer.  Thus a valid args object
@@ -281,7 +284,7 @@ dojox.fx.wipeTo = function(/*Object*/ args){
 	//		Node must have no margin/border/padding, so put another
 	//		node inside your target node for additional styling.
 
-	args.node = dojo.byId(args.node);
+	args.node = dom.byId(args.node);
 	var node = args.node, s = node.style;
 
 	var dir = (args.width ? "width" : "height"),
@@ -301,13 +304,16 @@ dojox.fx.wipeTo = function(/*Object*/ args){
 				s.visibility = "";
 				return 1;
 			}else{
-				var now = dojo.style(node,dir);
+				var now = htmlUtil.style(node,dir);
 				return Math.max(now, 1);
 			}
 		},
 		end: endVal
 	};
 
-	var anim = dojo.animateProperty(dojo.mixin({ properties: props }, args));
+	var anim = baseFx.animateProperty(lang.mixin({ properties: props }, args));
 	return anim; // dojo.Animation
 };
+
+return dojoxFx;
+});

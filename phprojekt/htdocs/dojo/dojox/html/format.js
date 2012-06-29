@@ -1,9 +1,8 @@
-dojo.provide("dojox.html.format");
-
-dojo.require("dojox.html.entities");
-
-(function(){
-	dojox.html.format.prettyPrint = function(html/*String*/, indentBy /*Integer?*/, maxLineLength /*Integer?*/, map/*Array?*/, /*boolean*/ xhtml){
+define(["dojo/_base/kernel", "./entities", "dojo/_base/array", "dojo/_base/window", "dojo/_base/sniff"], 
+	function(lang, Entities, ArrayUtil, Window, has) {
+	var dhf = lang.getObject("dojox.html.format",true);
+	
+	dhf.prettyPrint = function(html/*String*/, indentBy /*Integer?*/, maxLineLength /*Integer?*/, map/*Array?*/, /*boolean*/ xhtml){
 		// summary:
 		//		Function for providing a 'pretty print' version of HTML content from
 		//		the provided string.  It's nor perfect by any means, but it does
@@ -11,15 +10,15 @@ dojo.require("dojox.html.entities");
 		// html: String
 		//		The string of HTML to try and generate a 'pretty' formatting.
 		// indentBy:  Integer
-		//		Optional input for the number of spaces to use when indenting.  
-		//		If not defined, zero, negative, or greater than 10, will just use tab 
+		//		Optional input for the number of spaces to use when indenting.
+		//		If not defined, zero, negative, or greater than 10, will just use tab
 		//		as the indent.
 		// maxLineLength: Integer
-		//		Optional input for the number of characters a text line should use in 
+		//		Optional input for the number of characters a text line should use in
 		//		the document, including the indent if possible.
 		// map:	Array
-		//		Optional array of entity mapping characters to use when processing the 
-		//		HTML Text content.  By default it uses the default set used by the 
+		//		Optional array of entity mapping characters to use when processing the
+		//		HTML Text content.  By default it uses the default set used by the
 		//		dojox.html.entities.encode function.
 		// xhtml: boolean
 		//		Optional parameter that declares that the returned HTML should try to be 'xhtml' compatible.
@@ -31,12 +30,12 @@ dojo.require("dojox.html.entities");
 		var textContent = "";
 		var inlineStyle = [];
 		var i;
-
+	
 		// Compile regexps once for this call.
 		var rgxp_fixIEAttrs = /[=]([^"']+?)(\s|>)/g;
 		var rgxp_styleMatch = /style=("[^"]*"|'[^']*'|\S*)/gi;
-		var rgxp_attrsMatch = /\s\w+=("[^"]*"|'[^']*'|\S*)/gi;
-
+		var rgxp_attrsMatch = /[\w-]+=("[^"]*"|'[^']*'|\S*)/gi;
+	
 		// Check to see if we want to use spaces for indent instead
 		// of tab.
 		if(indentBy && indentBy > 0 && indentBy < 10){
@@ -45,22 +44,22 @@ dojo.require("dojox.html.entities");
 				iTxt += " ";
 			}
 		}
-
-		//Build the content outside of the editor so we can walk 
+	
+		//Build the content outside of the editor so we can walk
 		//via DOM and build a 'pretty' output.
-		var contentDiv = dojo.doc.createElement("div");
+		var contentDiv = Window.doc.createElement("div");
 		contentDiv.innerHTML = html;
-
+	
 		// Use the entity encode/decode functions, they cache on the map,
 		// so it won't multiprocess a map.
-		var encode = dojox.html.entities.encode;
-		var decode = dojox.html.entities.decode;
-
+		var encode = Entities.encode;
+		var decode = Entities.decode;
+	
 		/** Define a bunch of formatters to format the output. **/
 		var isInlineFormat = function(tag){
 			// summary:
 			//		Function to determine if the current tag is an inline
-			//		element that does formatting, as we don't want to 
+			//		element that does formatting, as we don't want to
 			//		break/indent around it, as it can screw up text.
 			// tag:
 			//		The tag to examine
@@ -86,7 +85,7 @@ dojo.require("dojox.html.entities");
 					return false;
 			}
 		};
-
+	
 		//Create less divs.
 		var div = contentDiv.ownerDocument.createElement("div");
 		var outerHTML =  function(node){
@@ -101,7 +100,7 @@ dojo.require("dojox.html.entities");
 			div.innerHTML = "";
 			return html;
 		};
-
+	
 		var sizeIndent = function(){
 			var i, txt = "";
 			for(i = 0; i < indentDepth; i++){
@@ -109,7 +108,7 @@ dojo.require("dojox.html.entities");
 			}
 			return txt.length;
 		}
-
+	
 		var indent = function(){
 			// summary:
 			//		Function to handle indent depth.
@@ -123,7 +122,7 @@ dojo.require("dojox.html.entities");
 			//		Function to handle newlining.
 			content.push("\n");
 		};
-
+	
 		var processTextNode = function(n){
 			// summary:
 			//		Function to process the text content for doc
@@ -132,7 +131,7 @@ dojo.require("dojox.html.entities");
 			//		The text node to process.
 			textContent += encode(n.nodeValue, map);
 		};
-
+	
 		var formatText = function(txt){
 			// summary:
 			//		Function for processing the text content encountered up to a
@@ -141,15 +140,15 @@ dojo.require("dojox.html.entities");
 			//		The text to format.
 			var i;
 			var _iTxt;
-
+	
 			// Clean up any indention organization since we're going to rework it
 			// anyway.
 			var _lines = txt.split("\n");
 			for(i = 0; i < _lines.length; i++){
-				_lines[i] = dojo.trim(_lines[i]);
+				_lines[i] = lang.trim(_lines[i]);
 			}
 			txt = _lines.join(" ");
-			txt = dojo.trim(txt);
+			txt = lang.trim(txt);
 			if(txt !== ""){
 				var lines = [];
 				if(maxLineLength && maxLineLength > 0){
@@ -170,9 +169,9 @@ dojo.require("dojox.html.entities");
 								}
 							}
 							var line = txt.substring(0, i);
-							line = dojo.trim(line);
+							line = lang.trim(line);
 							// Shift up the text string to the next chunk.
-							txt = dojo.trim(txt.substring((i == txt.length)?txt.length:i + 1, txt.length));
+							txt = lang.trim(txt.substring((i == txt.length)?txt.length:i + 1, txt.length));
 							if(line){
 								_iTxt = "";
 								for(i = 0; i < indentDepth; i++){
@@ -206,7 +205,7 @@ dojo.require("dojox.html.entities");
 				return "";
 			}
 		};
-
+	
 		var processScriptText = function(txt){
 			// summary:
 			//		Function to clean up potential escapes in the script code.
@@ -218,11 +217,11 @@ dojo.require("dojox.html.entities");
 			}
 			return txt;
 		};
-
+	
 		var formatScript = function(txt){
 			// summary:
 			//		Function to rudimentary formatting of script text.
-			//		Not perfect, but it helps get some level of organization 
+			//		Not perfect, but it helps get some level of organization
 			//		in there.
 			// txt:
 			//		The script text to try to format a bit.
@@ -235,7 +234,7 @@ dojo.require("dojox.html.entities");
 				for (i = 0; i < scriptLines.length; i++){
 					var line = scriptLines[i];
 					var hasNewlines = (line.indexOf("\n") > -1);
-					line = dojo.trim(line);
+					line = lang.trim(line);
 					if(line){
 						var iLevel = indent;
 						// Not all blank, so we need to process.
@@ -245,7 +244,7 @@ dojo.require("dojox.html.entities");
 								indent++;
 							}else if(ch === "}"){
 								indent--;
-								// We want to back up a bit before the 
+								// We want to back up a bit before the
 								// line is written.
 								iLevel = indent;
 							}
@@ -256,32 +255,32 @@ dojo.require("dojox.html.entities");
 						}
 						newLines.push(_iTxt + line + "\n");
 					}else if(hasNewlines && i === 0){
-						// Just insert a newline for blank lines as 
-						// long as it's not the first newline (we 
+						// Just insert a newline for blank lines as
+						// long as it's not the first newline (we
 						// already inserted that in the openTag handler)
 						newLines.push("\n");
 					}
-
+	
 				}
-				// Okay, create the script text, hopefully reasonably 
+				// Okay, create the script text, hopefully reasonably
 				// formatted.
 				txt = newLines.join("");
 			}
 			return txt;
 		};
-
+	
 		var openTag = function(node){
 			// summary:
 			//		Function to open a new tag for writing content.
 			var name = node.nodeName.toLowerCase();
 			// Generate the outer node content (tag with attrs)
-			var nText = dojo.trim(outerHTML(node));
+			var nText = lang.trim(outerHTML(node));
 			var tag = nText.substring(0, nText.indexOf(">") + 1);
-
-			// Also thanks to IE, we need to check for quotes around 
+	
+			// Also thanks to IE, we need to check for quotes around
 			// attributes and insert if missing.
 			tag = tag.replace(rgxp_fixIEAttrs,'="$1"$2');
-
+	
 			// And lastly, thanks IE for changing style casing and end
 			// semi-colon and webkit adds spaces, so lets clean it up by
 			// sorting, etc, while we're at it.
@@ -289,11 +288,11 @@ dojo.require("dojox.html.entities");
 				var sL = match.substring(0,6);
 				var style = match.substring(6, match.length);
 				var closure = style.charAt(0);
-				style = dojo.trim(style.substring(1,style.length -1));
+				style = lang.trim(style.substring(1,style.length -1));
 				style = style.split(";");
 				var trimmedStyles = [];
-				dojo.forEach(style, function(s){
-					s = dojo.trim(s);
+				ArrayUtil.forEach(style, function(s){
+					s = lang.trim(s);
 					if(s){
 						// Lower case the style name, leave the value alone.  Mainly a fixup for IE.
 						s = s.substring(0, s.indexOf(":")).toLowerCase() + s.substring(s.indexOf(":"), s.length);
@@ -304,7 +303,7 @@ dojo.require("dojox.html.entities");
 				
 				// Reassemble and return the styles in sorted order.
 				style = trimmedStyles.join("; ");
-				var ts = dojo.trim(style);
+				var ts = lang.trim(style);
 				if(!ts || ts === ";"){
 					// Just remove any style attrs that are empty.
 					return "";
@@ -313,22 +312,22 @@ dojo.require("dojox.html.entities");
 					return sL + closure + style + closure;
 				}
 			});
-
+	
 			// Try and sort the attributes while we're at it.
 			var attrs = [];
 			tag = tag.replace(rgxp_attrsMatch, function(attr){
-				attrs.push(dojo.trim(attr));
+				attrs.push(lang.trim(attr));
 				return "";
 			});
 			attrs = attrs.sort();
-
+	
 			// Reassemble the tag with sorted attributes!
 			tag = "<" + name;
 			if(attrs.length){
 				 tag += " " + attrs.join(" ");
 			}
-
-			// Determine closure status.  If xhtml, 
+	
+			// Determine closure status.  If xhtml,
 			// then close the tag properly as needed.
 			if(nText.indexOf("</") != -1){
 				closeTags.push(name);
@@ -341,16 +340,16 @@ dojo.require("dojox.html.entities");
 				}
 				closeTags.push(false);
 			}
-
+	
 			var inline = isInlineFormat(name);
-			inlineStyle.push(inline); 
+			inlineStyle.push(inline);
 			if(textContent && !inline){
-				// Process any text content we have that occurred 
+				// Process any text content we have that occurred
 				// before the open tag of a non-inline.
 				content.push(formatText(textContent));
 				textContent = "";
 			}
-
+	
 			// Determine if this has a closing tag or not!
 			if(!inline){
 				indent();
@@ -368,7 +367,7 @@ dojo.require("dojox.html.entities");
 			//		Function to close out a tag if necessary.
 			var inline = inlineStyle.pop();
 			if(textContent && !inline){
-				// Process any text content we have that occurred 
+				// Process any text content we have that occurred
 				// before the close tag.
 				content.push(formatText(textContent));
 				textContent = "";
@@ -385,16 +384,16 @@ dojo.require("dojox.html.entities");
 					textContent += ct;
 				}
 			}else{
-				indentDepth--;	
+				indentDepth--;
 			}
 		};
-
+	
 		var processCommentNode = function(n){
 			// summary:
 			//		Function to handle processing a comment node.
 			// n:
 			//		The comment node to process.
-
+	
 			//Make sure contents aren't double-encoded.
 			var commentText = decode(n.nodeValue, map);
 			indent();
@@ -407,7 +406,7 @@ dojo.require("dojox.html.entities");
 			content.push("-->");
 			newline();
 		};
-
+	
 		var processNode = function(node) {
 			// summary:
 			//		Entrypoint for processing all the text!
@@ -417,13 +416,13 @@ dojo.require("dojox.html.entities");
 				for(i = 0; i < children.length; i++){
 					var n = children[i];
 					if(n.nodeType === 1){
-						var tg = dojo.trim(n.tagName.toLowerCase());
-                        if(dojo.isIE && n.parentNode != node){
-							// IE is broken.  DOMs are supposed to be a tree.  
+						var tg = lang.trim(n.tagName.toLowerCase());
+						if(has("ie") && n.parentNode != node){
+							// IE is broken.  DOMs are supposed to be a tree.
 							// But in the case of malformed HTML, IE generates a graph
-							// meaning one node ends up with multiple references 
+							// meaning one node ends up with multiple references
 							// (multiple parents).  This is totally wrong and invalid, but
-							// such is what it is.  We have to keep track and check for 
+							// such is what it is.  We have to keep track and check for
 							// this because otherwise the source output HTML will have dups.
 							continue;
 						}
@@ -439,7 +438,7 @@ dojo.require("dojox.html.entities");
 								content.push(formatScript(n.innerHTML));
 							}else if(tg === "pre"){
 								var preTxt = n.innerHTML;
-								if(dojo.isMoz){
+								if(has("mozilla")){
 									//Mozilla screws this up, so fix it up.
 									preTxt = preTxt.replace("<br>", "\n");
 									preTxt = preTxt.replace("<pre>", "");
@@ -463,7 +462,7 @@ dojo.require("dojox.html.entities");
 				}
 			}
 		};
-
+	
 		//Okay, finally process the input string.
 		processNode(contentDiv);
 		if(textContent){
@@ -473,5 +472,6 @@ dojo.require("dojox.html.entities");
 		}
 		return content.join(""); //String
 	};
-})();
+	return dhf;
+});
 

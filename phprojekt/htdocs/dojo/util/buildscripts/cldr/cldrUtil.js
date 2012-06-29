@@ -1,3 +1,8 @@
+// monkey-patch dojo.xhrGet, as there is no Rhino support there
+dojo.xhrGet = function(args){
+    args.load(readFile(args.url, "utf-8"));
+};
+
 (function(){
 	// monkey patch fromJson to avoid Rhino bug in eval: https://bugzilla.mozilla.org/show_bug.cgi?id=471005
 	var fromJson = dojo.fromJson;
@@ -21,13 +26,13 @@ function isLocaleAliasSrc(prop, bundle){
 				isAlias = true;
 			}
 		}
-	}	
+	}
 	return isAlias;
 }
 
 function getNativeBundle(filePath){
 	//summary: get native bundle content with utf-8 encoding
-	//	native means the content of this bundle is not flattened with parent 
+	//	native means the content of this bundle is not flattened with parent
 	//	returns empty object if file not found
 	try{
 		var content = readFile(filePath, "utf-8");

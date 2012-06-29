@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	smiley: "Vložit emotikonu",
 	emoticonSmile: "úsměv",
@@ -5,8 +7,8 @@
 	emoticonWink: "mrknutí",
 	emoticonGrin: "úšklebek",
 	emoticonCool: "skvělé",
-	emoticonAngry: "hněv",  
-	emoticonHalf: "polovina", 
+	emoticonAngry: "hněv",
+	emoticonHalf: "polovina",
 	emoticonEyebrow: "obočí",
 	emoticonFrown: "zamračení",
 	emoticonShy: "stud",
@@ -15,8 +17,11 @@
 	emoticonTongue: "jazyk",
 	emoticonIdea: "nápad",
 	emoticonYes: "ano",
-	emoticonNo: "ne",	
+	emoticonNo: "ne",
 	emoticonAngel: "anděl",
-	emoticonCrying: "pláč"
+	emoticonCrying: "pláč",
+	emoticonHappy: "veselý"
 })
 
+//end v1.x content
+);

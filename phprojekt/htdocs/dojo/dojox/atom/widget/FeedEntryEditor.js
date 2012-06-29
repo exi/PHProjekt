@@ -1,21 +1,35 @@
-dojo.provide("dojox.atom.widget.FeedEntryEditor");
-
-dojo.require("dojox.atom.widget.FeedEntryViewer");
-dojo.require("dijit._Widget");
-dojo.require("dijit._Templated");
-dojo.require("dijit._Container");
-dojo.require("dijit.Editor");
-dojo.require("dijit.form.TextBox");
-dojo.require("dijit.form.SimpleTextarea");
-dojo.requireLocalization("dojox.atom.widget", "FeedEntryEditor");
-dojo.requireLocalization("dojox.atom.widget", "PeopleEditor");
-
+define([
+	"dojo/_base/kernel",
+	"dojo/_base/lang",
+	"dojo/_base/connect",
+	"dojo/_base/fx",
+	"dojo/_base/sniff",
+	"dojo/dom",
+	"dojo/dom-style",
+	"dojo/dom-construct",
+	"dijit/_Widget",
+	"dijit/_Templated",
+	"dijit/_Container",
+	"dijit/Editor",
+	"dijit/form/TextBox",
+	"dijit/form/SimpleTextarea",
+	"./FeedEntryViewer",
+	"../io/model",
+	"dojo/text!./templates/FeedEntryEditor.html",
+	"dojo/text!./templates/PeopleEditor.html",
+	"dojo/i18n!./nls/FeedEntryViewer",
+	"dojo/i18n!./nls/FeedEntryEditor",
+	"dojo/i18n!./nls/PeopleEditor",
+	"dojo/_base/declare"
+], function (dojo, lang, connect, fx, has, domUtil, domStyle, domConstruct, _Widget, _Templated, _Container, Editor, TextBox, SimpleTextarea, FeedEntryViewer, model, template, peopleEditorTemplate, i18nViewer, i18nEditor, i18nPeople) {
 dojo.experimental("dojox.atom.widget.FeedEntryEditor");
 
-dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryViewer,{
-	//	summary:  
+var widget = dojo.getObject("dojox.atom.widget", true);
+
+widget.FeedEntryEditor = dojo.declare(/*===== "dojox.atom.widget.FeedEntryEditor", =====*/ FeedEntryViewer,{
+	//	summary:
 	//		An ATOM feed entry editor that allows viewing of the individual attributes of an entry.
-	//	description:  
+	//	description:
 	//		An ATOM feed entry editor that allows viewing of the individual attributes of an entry.
 	_contentEditor: null,
 	_oldContent: null,
@@ -27,13 +41,13 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	_editable: false,		//Flag denoting if the current entry is editable or not.
 
 	//Templates for the HTML rendering.  Need to figure these out better, admittedly.
-	templateString: dojo.cache("dojox.atom", "widget/templates/FeedEntryEditor.html"),
+	templateString: template,
 
 	postCreate: function(){
 		if(this.entrySelectionTopic !== ""){
 			this._subscriptions = [dojo.subscribe(this.entrySelectionTopic, this, "_handleEvent")];
 		}
-		var _nlsResources = dojo.i18n.getLocalization("dojox.atom.widget", "FeedEntryViewer");
+		var _nlsResources = i18nViewer;
 		this.displayOptions.innerHTML = _nlsResources.displayOptions;
 		this.feedEntryCheckBoxLabelTitle.innerHTML = _nlsResources.title;
 		this.feedEntryCheckBoxLabelAuthors.innerHTML = _nlsResources.authors;
@@ -44,7 +58,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		this.feedEntryCheckBoxLabelSummary.innerHTML = _nlsResources.summary;
 		this.feedEntryCheckBoxLabelContent.innerHTML = _nlsResources.content;
 
-		_nlsResources = dojo.i18n.getLocalization("dojox.atom.widget", "FeedEntryEditor");
+		_nlsResources = i18nEditor;
 		this.doNew.innerHTML = _nlsResources.doNew;
 		this.edit.innerHTML = _nlsResources.edit;
 		this.save.innerHTML = _nlsResources.save;
@@ -52,12 +66,12 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	},
 	
 	setEntry: function(/*object*/entry, /*object*/feed, /*boolean*/leaveMenuState){
-		//	summary:  
+		//	summary:
 		//		Function to set the current entry that is being edited.
 		//	description:
 		//		Function to set the current entry that is being edited.
 		//
-		//	entry: 
+		//	entry:
 		//		Instance of dojox.atom.io.model.Entry to display for reading/editing.
 		if(this._entry !== entry){
 			//If we swap entries, we don't want to keep the menu states and modes.
@@ -66,34 +80,34 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		}else{
 			leaveMenuState = true;
 		}
-		dojox.atom.widget.FeedEntryEditor.superclass.setEntry.call(this, entry, feed);
+		widget.FeedEntryEditor.superclass.setEntry.call(this, entry, feed);
 		this._editable = this._isEditable(entry);
 		if(!leaveMenuState && !this._editable){
-			dojo.style(this.entryEditButton, 'display', 'none');
-			dojo.style(this.entrySaveCancelButtons, 'display', 'none');
+			domStyle.set(this.entryEditButton, 'display', 'none');
+			domStyle.set(this.entrySaveCancelButtons, 'display', 'none');
 		}
 		if(this._editable && this.enableEdit){
 			if(!leaveMenuState){
-				dojo.style(this.entryEditButton, 'display', '');
+				domStyle.set(this.entryEditButton, 'display', '');
 				//TODO double check this &&...
 				if(this.enableMenuFade && this.entrySaveCancelButton){
-					dojo.fadeOut({node: this.entrySaveCancelButton,duration: 250}).play();
+					fx.fadeOut({node: this.entrySaveCancelButton,duration: 250}).play();
 				}
 			}
 		}
 	},
 
 	_toggleEdit: function(){
-		//	summary: 
+		//	summary:
 		//		Internal function for toggling/enabling the display of edit mode
-		//	description: 
+		//	description:
 		//		Internal function for toggling/enabling the display of edit mode
 		//
-		//	returns:  
+		//	returns:
 		//		Nothing.
 		if(this._editable && this.enableEdit){
-			dojo.style(this.entryEditButton, 'display', 'none');
-			dojo.style(this.entrySaveCancelButtons, 'display', '');
+			domStyle.set(this.entryEditButton, 'display', 'none');
+			domStyle.set(this.entrySaveCancelButtons, 'display', '');
 			this._editMode = true;
 
 			//Rebuild the view using the same entry and feed.
@@ -102,25 +116,25 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	},
 
 	_handleEvent: function(/*object*/entrySelectionEvent){
-		//	summary: 
+		//	summary:
 		//		Internal function for listening to a topic that will handle entry notification.
 		//	description:
 		//		Internal function for listening to a topic that will handle entry notification.
 		//
-		//	entrySelectionEvent: 
+		//	entrySelectionEvent:
 		//		The topic message containing the entry that was selected for view.
 		//
-		//	returns:  
+		//	returns:
 		//		Nothing.
-		if(entrySelectionEvent.source != this && entrySelectionEvent.action == "delete" && 
+		if(entrySelectionEvent.source != this && entrySelectionEvent.action == "delete" &&
 			entrySelectionEvent.entry && entrySelectionEvent.entry == this._entry){
-				dojo.style(this.entryEditButton, 'display', 'none');
+				domStyle.set(this.entryEditButton, 'display', 'none');
 		}
-		dojox.atom.widget.FeedEntryEditor.superclass._handleEvent.call(this, entrySelectionEvent);
+		widget.FeedEntryEditor.superclass._handleEvent.call(this, entrySelectionEvent);
 	},
 
 	_isEditable: function(/*object*/entry){
-		//	summary: 
+		//	summary:
 		//		Internal function for determining of a particular entry is editable.
 		//	description:
 		//		Internal function for determining of a particular entry is editable.
@@ -130,7 +144,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		//		The dojox.atom.io.model.Entry object to examine
 		//
 		//	returns:
-		//		Boolean denoting if the entry seems editable or not.. 
+		//		Boolean denoting if the entry seems editable or not..
 		var retVal = false;
 		if(entry && entry !== null && entry.links && entry.links !== null){
 			for(var x in entry.links){
@@ -146,9 +160,9 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	// The following set<Attribute> functions override the corresponding functions in FeedEntryViewer.  These handle
 	// the editMode flag by inserting appropriate editor widgets inside of just splashing the content in the page.
 	setTitle: function(/*DOM node*/titleAnchorNode, /*boolean*/editMode, /*object*/entry){
-		//	summary:  
+		//	summary:
 		//		Function to set the contents of the title node in the template to some value from the entry.
-		//	description: 
+		//	description:
 		//		Function to set the contents of the title node in the template to some value from the entry.
 		//		This exists specifically so users can over-ride how the title data is filled out from an entry.
 		//
@@ -160,7 +174,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		//		The Feed Entry to work with.
 		//
 		if(!editMode){
-			dojox.atom.widget.FeedEntryEditor.superclass.setTitle.call(this, titleAnchorNode, editMode, entry);
+			widget.FeedEntryEditor.superclass.setTitle.call(this, titleAnchorNode, editMode, entry);
 			if(entry.title && entry.title.value && entry.title.value !== null){
 				this.setFieldValidity("title", true);
 			}
@@ -181,20 +195,20 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	},
 
 	setAuthors: function(/*DOM node*/authorsAnchorNode, /*boolean*/editMode, /*object*/entry){
-		//	summary:  
+		//	summary:
 		//		Function to set the contents of the author node in the template to some value from the entry.
-		//	description: 
+		//	description:
 		//		Function to set the contents of the author node in the template to some value from the entry.
 		//		This exists specifically so users can over-ride how the title data is filled out from an entry.
 		//
 		//	authorsAnchorNode:
 		//		The DOM node to attach the author data to.
-		//	editMode: 
+		//	editMode:
 		// 		Boolean to indicate if the display should be in edit mode or not.
-		//	entry: 
+		//	entry:
 		// 		The Feed Entry to work with.
 		if(!editMode){
-			dojox.atom.widget.FeedEntryEditor.superclass.setAuthors.call(this, authorsAnchorNode, editMode, entry);
+			widget.FeedEntryEditor.superclass.setAuthors.call(this, authorsAnchorNode, editMode, entry);
 			if(entry.authors && entry.authors.length > 0){
 				this.setFieldValidity("authors", true);
 			}
@@ -208,9 +222,9 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 
 
 	setContributors: function(/*DOM node*/contributorsAnchorNode, /*boolean*/editMode, /*object*/entry){
-		//	summary:  
+		//	summary:
 		//		Function to set the contents of the contributor node in the template to some value from the entry.
-		//	description: 
+		//	description:
 		//		Function to set the contents of the contributor node in the template to some value from the entry.
 		//		This exists specifically so users can over-ride how the title data is filled out from an entry.
 		//
@@ -221,7 +235,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		//	entry:
 		//		The Feed Entry to work with.
 		if(!editMode){
-			dojox.atom.widget.FeedEntryEditor.superclass.setContributors.call(this, contributorsAnchorNode, editMode, entry);
+			widget.FeedEntryEditor.superclass.setContributors.call(this, contributorsAnchorNode, editMode, entry);
 			if(entry.contributors && entry.contributors.length > 0){
 				this.setFieldValidity("contributors", true);
 			}
@@ -235,9 +249,9 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 
 
 	setId: function(/*DOM node*/idAnchorNode, /*boolean*/editMode, /*object*/entry){
-		//	summary:  
+		//	summary:
 		//		Function to set the contents of the ID  node in the template to some value from the entry.
-		//	description: 
+		//	description:
 		//		Function to set the contents of the ID node in the template to some value from the entry.
 		//		This exists specifically so users can over-ride how the title data is filled out from an entry.
 		//
@@ -248,7 +262,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		//	entry:
 		//		The Feed Entry to work with.
 		if(!editMode){
-			dojox.atom.widget.FeedEntryEditor.superclass.setId.call(this, idAnchorNode, editMode, entry);
+			widget.FeedEntryEditor.superclass.setId.call(this, idAnchorNode, editMode, entry);
 			if(entry.id && entry.id !== null){
 				this.setFieldValidity("id", true);
 			}
@@ -261,9 +275,9 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	},
 
 	setUpdated: function(/*DOM node*/updatedAnchorNode, /*boolean*/editMode, /*object*/entry){
-		//	summary:  
+		//	summary:
 		//		Function to set the contents of the updated  node in the template to some value from the entry.
-		//	description: 
+		//	description:
 		//		Function to set the contents of the updated node in the template to some value from the entry.
 		//		This exists specifically so users can over-ride how the title data is filled out from an entry.
 		//
@@ -274,7 +288,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		//	entry:
 		//		The Feed Entry to work with.
 		if(!editMode){
-			dojox.atom.widget.FeedEntryEditor.superclass.setUpdated.call(this, updatedAnchorNode, editMode, entry);
+			widget.FeedEntryEditor.superclass.setUpdated.call(this, updatedAnchorNode, editMode, entry);
 			if(entry.updated && entry.updated !== null){
 				this.setFieldValidity("updated", true);
 			}
@@ -288,9 +302,9 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 
 
 	setSummary: function(/*DOM node*/summaryAnchorNode, /*boolean*/editMode, /*object*/entry){
-		//	summary:  
+		//	summary:
 		//		Function to set the contents of the summary  node in the template to some value from the entry.
-		//	description: 
+		//	description:
 		//		Function to set the contents of the summary node in the template to some value from the entry.
 		//		This exists specifically so users can over-ride how the title data is filled out from an entry.
 		//
@@ -301,7 +315,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		//	entry:
 		//		The Feed Entry to work with.
 		if(!editMode){
-			dojox.atom.widget.FeedEntryEditor.superclass.setSummary.call(this, summaryAnchorNode, editMode, entry);
+			widget.FeedEntryEditor.superclass.setSummary.call(this, summaryAnchorNode, editMode, entry);
 			if(entry.summary && entry.summary.value && entry.summary.value !== null){
 				this.setFieldValidity("summary", true);
 			}
@@ -322,9 +336,9 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	},
 
 	setContent: function(/*DOM node*/contentAnchorNode, /*boolean*/editMode, /*object*/entry){
-		//	summary:  
+		//	summary:
 		//		Function to set the contents of the content node in the template to some value from the entry.
-		//	description: 
+		//	description:
 		//		Function to set the contents of the content node in the template to some value from the entry.
 		//		This exists specifically so users can over-ride how the title data is filled out from an entry.
 		//
@@ -332,10 +346,10 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		//		The DOM node to attach the content data to.
 		//	editMode:
 		//		Boolean to indicate if the display should be in edit mode or not.
-		// 	entry: 
+		// 	entry:
 		//		The Feed Entry to work with.
 		if(!editMode){
-			dojox.atom.widget.FeedEntryEditor.superclass.setContent.call(this, contentAnchorNode, editMode, entry);
+			widget.FeedEntryEditor.superclass.setContent.call(this, contentAnchorNode, editMode, entry);
 			if(entry.content && entry.content.value && entry.content.value !== null){
 				this.setFieldValidity("content",true);
 			}
@@ -355,59 +369,59 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	},
 	
 	_createEditor: function(/*DOM node*/anchorNode, /*DOM node*/node, /*boolean*/multiline, /*object*/rte){
-		//	summary:  
+		//	summary:
 		//		Function to create an appropriate text editor widget based on the given parameters.
-		//	description: 
+		//	description:
 		//		Function to create an appropriate text editor widget based on the given parameters.
 		//
 		//	anchorNode:
 		//		The DOM node to attach the editor widget to.
-		//	node: 
+		//	node:
 		//		An object containing the value to be put into the editor.  This ranges from an anonymous object
 		//		with a value parameter to a dojox.atom.io.model.Content object.
 		//	multiline:
-		//		A boolean indicating whether the content should be multiline (such as a textarea) instead of a 
+		//		A boolean indicating whether the content should be multiline (such as a textarea) instead of a
 		//		single line (such as a textbox).
 		//	rte:
 		//		A boolean indicating whether the content should be a rich text editor widget.
 		//
 		//	returns:
-		//		Either a widget (for textarea or textbox widgets) or an anonymous object to be used to create a 
+		//		Either a widget (for textarea or textbox widgets) or an anonymous object to be used to create a
 		//		rich text area widget.
 		var viewNode;
 		var box;
 		if(!node){
 			if(rte){
-				// Returns an anonymous object which would then be loaded later, after the containing element 
+				// Returns an anonymous object which would then be loaded later, after the containing element
 				// exists on the page.
 				return {anchorNode: anchorNode,
 						entryValue: "",
 						editor: null,
 						generateEditor: function(){
-							// The only way I found I could get the editor to behave consistently was to 
-							// create the content on a span, and allow the content editor to replace it.  
+							// The only way I found I could get the editor to behave consistently was to
+							// create the content on a span, and allow the content editor to replace it.
 							// This gets around the dynamic/delayed way in which content editors get created.
 							var node = document.createElement("div");
 							node.innerHTML = this.entryValue;
 							this.anchorNode.appendChild(node);
-							var _editor = new dijit.Editor({}, node);
+							var _editor = new Editor({}, node);
 							this.editor = _editor;
 							return _editor;
-						} 
+						}
 				};
 			}
 			if(multiline){
 				// If multiline, create a textarea
 				viewNode = document.createElement("textarea");
 				anchorNode.appendChild(viewNode);
-				dojo.style(viewNode, 'width', '90%');
-				box = new dijit.form.SimpleTextarea({},viewNode);
+				domStyle.set(viewNode, 'width', '90%');
+				box = new SimpleTextarea({},viewNode);
 			}else{
 				// If single line, create a textbox.
 				viewNode = document.createElement("input");
 				anchorNode.appendChild(viewNode);
-				dojo.style(viewNode, 'width', '95%');
-				box = new dijit.form.TextBox({},viewNode);
+				domStyle.set(viewNode, 'width', '95%');
+				box = new TextBox({},viewNode);
 			}
 			box.attr('value', '');
 			return box;
@@ -423,7 +437,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 			value = node;
 		}
 		if(rte){
-			// Returns an anonymous object which would then be loaded later, after the containing element 
+			// Returns an anonymous object which would then be loaded later, after the containing element
 			// exists on the page.
 			if(value.indexOf("<") != -1){
 				value = value.replace(/</g, "&lt;");
@@ -432,13 +446,13 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 					entryValue: value,
 					editor: null,
 					generateEditor: function(){
-						// The only way I found I could get the editor to behave consistently was to 
-						// create the content on a span, and allow the content editor to replace it.  
+						// The only way I found I could get the editor to behave consistently was to
+						// create the content on a span, and allow the content editor to replace it.
 						// This gets around the dynamic/delayed way in which content editors get created.
 						var node = document.createElement("div");
 						node.innerHTML = this.entryValue;
 						this.anchorNode.appendChild(node);
-						var _editor = new dijit.Editor({}, node);
+						var _editor = new Editor({}, node);
 						this.editor = _editor;
 						return _editor;
 					}
@@ -448,23 +462,23 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 			// If multiline, create a textarea
 			viewNode = document.createElement("textarea");
 			anchorNode.appendChild(viewNode);
-			dojo.style(viewNode, 'width', '90%');
-			box = new dijit.form.SimpleTextarea({},viewNode);
+			domStyle.set(viewNode, 'width', '90%');
+			box = new SimpleTextarea({},viewNode);
 		}else{
 			// If single line, create a textbox.
 			viewNode = document.createElement("input");
 			anchorNode.appendChild(viewNode);
-			dojo.style(viewNode, 'width', '95%');
-			box = new dijit.form.TextBox({},viewNode);
+			domStyle.set(viewNode, 'width', '95%');
+			box = new TextBox({},viewNode);
 		}
 		box.attr('value', value);
 		return box;
 	},
 	
 	_switchEditor: function(/*object*/event){
-		//	summary:  
+		//	summary:
 		//		Function to switch between editor types.
-		//	description: 
+		//	description:
 		//		Function to switch between a rich text editor and a textarea widget.  Used for title, summary,
 		//		And content when switching between text and html/xhtml content.
 		//
@@ -475,7 +489,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		var parent = null;
 		
 		// Determine the source/target of this event (to determine which editor we're switching)
-		if(dojo.isIE){
+		if(has("ie")){
 			target = event.srcElement;
 		}else{
 			target = event.target;
@@ -499,65 +513,65 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		var value;
 		
 		if(target.value === "text"){
-			if(editor.declaredClass === "dijit.Editor"){
+			if(editor.isInstanceOf(Editor)){
 				// If we're changing the type to text and our existing editor is a rich text editor, we need to destroy
 				// it and switch to a multiline editor.
 				value = editor.attr('value', false);
 				editor.close(false,true);
 				editor.destroy();
 				while(parent.firstChild){
-					dojo.destroy(parent.firstChild);
+					domConstruct.destroy(parent.firstChild);
 				}
 				newEditor = this._createEditor(parent, {value: value}, true, false);
 				this._editors[type] = newEditor;
 			}
 		}else{
-			if(editor.declaredClass != "dijit.Editor"){
+			if(!editor.isInstanceOf(Editor)){
 				// Otherwise, we're switching to a html or xhtml type, but we currently have a textarea widget.  We need
 				// to destroy the existing RTE and create a multiline textarea widget.
 				value = editor.attr('value');
 				editor.destroy();
 				while(parent.firstChild){
-					dojo.destroy(parent.firstChild);
+					domConstruct.destroy(parent.firstChild);
 				}
 				newEditor = this._createEditor(parent, {value: value}, true, true);
-				newEditor = dojo.hitch(newEditor, newEditor.generateEditor)();
+				newEditor = lang.hitch(newEditor, newEditor.generateEditor)();
 				this._editors[type] = newEditor;
 			}
 		}
 	},
 	
 	_createPeopleEditor: function(/*DOM node*/anchorNode, /*DOM node*/node){
-		//	summary: 
+		//	summary:
 		//		Creates a People Editor widget and returns it.
-		//	description: 
+		//	description:
 		//		Creates a People Editor widget, sets its value, and returns it.
 		//
 		//	anchorNode:
 		//		The node to attach the editor to.
 		//	node:
-		//		An object containing the value to be put into the editor. Typically, this is an 
+		//		An object containing the value to be put into the editor. Typically, this is an
 		//		dojox.atom.io.model.Person object.
 		//
 		// returns: A new People Editor object.
 		var viewNode = document.createElement("div");
 		anchorNode.appendChild(viewNode);
-		return new dojox.atom.widget.PeopleEditor(node,viewNode);
+		return new widget.PeopleEditor(node,viewNode);
 	},
 
 	saveEdits: function(){
-		//	summary: 
+		//	summary:
 		//		Saves edits submitted when the 'save' button is pressed.
-		//	description: 
+		//	description:
 		//		Saves edits submitted when the 'save' button is pressed.  Distinguishes between new and existing
-		//		entries and saves appropriately.  Fetches the values of the editors, and, if existing, compares them to 
+		//		entries and saves appropriately.  Fetches the values of the editors, and, if existing, compares them to
 		//		the existing values and submits the updates, otherwise creates a new entry and posts it as a new entry.
 		//
 		//	returns:
 		//		Nothing.
-		dojo.style(this.entrySaveCancelButtons, 'display', 'none');
-		dojo.style(this.entryEditButton, 'display', '');
-		dojo.style(this.entryNewButton, 'display', '');
+		domStyle.set(this.entrySaveCancelButtons, 'display', 'none');
+		domStyle.set(this.entryEditButton, 'display', '');
+		domStyle.set(this.entryNewButton, 'display', '');
 		var modifiedEntry = false;
 		var value;
 		var i;
@@ -575,7 +589,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 						value = '<div xmlns="http://www.w3.org/1999/xhtml">' + value + '</div>';
 					}
 				}
-				entry.title = new dojox.atom.io.model.Content("title", value, null, this.entryTitleSelect.value);
+				entry.title = new model.Content("title", value, null, this.entryTitleSelect.value);
 				modifiedEntry = true;
 			}
 			
@@ -592,7 +606,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 						value = '<div xmlns="http://www.w3.org/1999/xhtml">' + value + '</div>';
 					}
 				}
-				entry.summary = new dojox.atom.io.model.Content("summary", value, null, this.entrySummarySelect.value);
+				entry.summary = new model.Content("summary", value, null, this.entrySummarySelect.value);
 				modifiedEntry = true;
 			}
 			
@@ -604,7 +618,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 						value = '<div xmlns="http://www.w3.org/1999/xhtml">' + value + '</div>';
 					}
 				}
-				entry.content = new dojox.atom.io.model.Content("content", value, null, this.entryContentSelect.value);
+				entry.content = new model.Content("content", value, null, this.entryContentSelect.value);
 				modifiedEntry = true;
 			}
 			
@@ -697,7 +711,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 			}
 		}else{
 			this._new = false;
-			entry = new dojox.atom.io.model.Entry();
+			entry = new model.Entry();
 			
 			value = this._editors.title.attr('value');
 			if(this.entryTitleSelect.value === "xhtml"){
@@ -727,16 +741,16 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 				value = this._enforceXhtml(value);
 				value = '<div xmlns="http://www.w3.org/1999/xhtml">' + value + '</div>';
 			}
-			entry.summary = new dojox.atom.io.model.Content("summary", value, null, this.entrySummarySelect.value);
+			entry.summary = new model.Content("summary", value, null, this.entrySummarySelect.value);
 
 			value = this._editors.content.attr('value');
 			if(this.entryContentSelect.value === "xhtml"){
 				value = this._enforceXhtml(value);
 				value = '<div xmlns="http://www.w3.org/1999/xhtml">' + value + '</div>';
 			}
-			entry.content = new dojox.atom.io.model.Content("content", value, null, this.entryContentSelect.value);
+			entry.content = new model.Content("content", value, null, this.entryContentSelect.value);
 
-			dojo.style(this.entryNewButton, 'display', '');
+			domStyle.set(this.entryNewButton, 'display', '');
 			dojo.publish(this.entrySelectionTopic, [{action: "post", source: this, entry: entry }]);
 		}
 		this._editMode = false;
@@ -746,15 +760,15 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	},
 	
 	_handleSave: function(/*object*/entry, /*string*/location){
-		//	summary: 
+		//	summary:
 		//		Function for handling the save of an entry, cleaning up the display after the edit is completed.
-		//	description: 
+		//	description:
 		//		Function for handling the save of an entry, cleaning up the display after the edit is completed.
 		//
 		//	entry: dojox.atom.io.model.Entry object
 		//		The entry that was saved.
 		//	Location: String
-		//		A URL to be used, not used here, but part of the call back from the AtomIO 
+		//		A URL to be used, not used here, but part of the call back from the AtomIO
 		//	returns:
 		//		Nothing.
 		//Close the editor and revert out.
@@ -766,7 +780,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	},
 
 	cancelEdits: function(){
-		//	summary: 
+		//	summary:
 		//		Cancels edits and reverts the editor to its previous state (display mode)
 		//	description:
 		//		Cancels edits and reverts the editor to its previous state (display mode)
@@ -774,11 +788,11 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		//	returns:
 		//		Nothing.
 		this._new = false;
-		dojo.style(this.entrySaveCancelButtons, 'display', 'none');
+		domStyle.set(this.entrySaveCancelButtons, 'display', 'none');
 		if(this._editable){
-			dojo.style(this.entryEditButton, 'display', '');
+			domStyle.set(this.entryEditButton, 'display', '');
 		}
-		dojo.style(this.entryNewButton, 'display', '');
+		domStyle.set(this.entryNewButton, 'display', '');
 		this._editMode = false;
 		
 		//Rebuild the view using the same entry and feed.
@@ -787,15 +801,15 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	},
 
 	clear: function(){
-		//	summary: 
+		//	summary:
 		//		Clears the editor, destorys all editors, leaving the editor completely clear
-		//	description: 
+		//	description:
 		//		Clears the editor, destorys all editors, leaving the editor completely clear
 		this._editable=false;
 		this.clearEditors();
-		dojox.atom.widget.FeedEntryEditor.superclass.clear.apply(this);
+		widget.FeedEntryEditor.superclass.clear.apply(this);
 		if(this._contentEditor){
-			// Note that the superclass clear destroys the widget since it's in the child widget list, 
+			// Note that the superclass clear destroys the widget since it's in the child widget list,
 			// so this is just ref clearing.
 			this._contentEditor = this._setObject = this._oldContent = this._contentEditorCreator = null;
 			this._editors = {};
@@ -804,7 +818,7 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	
 	clearEditors: function(){
 		for(var key in this._editors){
-			if(this._editors[key].declaredClass === "dijit.Editor"){
+			if(this._editors[key].isInstanceOf(Editor)){
 				this._editors[key].close(false, true);
 			}
 			this._editors[key].destroy();
@@ -813,15 +827,15 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	},
 
 	_enforceXhtml: function(/*string*/html){
-		//	summary: 
+		//	summary:
 		//		Function for cleaning up/enforcing the XHTML standard in HTML returned from the editor2 widget.
-		//	description: 
+		//	description:
 		//		Function for cleaning up/enforcing the XHTML standard in HTML returned from the editor2 widget.
 		//
 		// 	html:
 		//		HTML string to be enforced as xhtml.
 		//
-		// 	returns:  
+		// 	returns:
 		//		string of cleaned up HTML.
 		var xhtml = null;
 		if(html){
@@ -839,9 +853,9 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	},
 
 	_closeTag: function(/*string*/xhtml, /*string*/tag){
-		//	summary: 
+		//	summary:
 		//		Function for closing tags in a text of HTML/XHTML
-		//	description: 
+		//	description:
 		//		Function for closing tags in a text of HTML/XHTML
 		//
 		//	xhtml: String
@@ -880,15 +894,15 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	},
 	
 	_toggleNew: function(){
-		//	summary: 
+		//	summary:
 		//		Function to put the editor into a state to create a new entry.
-		//	description: 
+		//	description:
 		//		Function to put the editor into a state to create a new entry.
 		
 		// Hide the edit/new buttons and show the save/cancel buttons.
-		dojo.style(this.entryNewButton, 'display', 'none');
-		dojo.style(this.entryEditButton, 'display', 'none');
-		dojo.style(this.entrySaveCancelButtons, 'display', '');
+		domStyle.set(this.entryNewButton, 'display', 'none');
+		domStyle.set(this.entryEditButton, 'display', 'none');
+		domStyle.set(this.entrySaveCancelButtons, 'display', '');
 		
 		// Reset the type select boxes to text.
 		this.entrySummarySelect.value = "text";
@@ -899,46 +913,46 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		this.clearNodes();
 		this._new = true;
 		
-		var _nlsResources = dojo.i18n.getLocalization("dojox.atom.widget", "FeedEntryViewer");
+		var _nlsResources = i18nViewer;
 		// Create all headers and editors.
-		var titleHeader = new dojox.atom.widget.EntryHeader({title: _nlsResources.title});
+		var titleHeader = new widget.EntryHeader({title: _nlsResources.title});
 		this.entryTitleHeader.appendChild(titleHeader.domNode);
 		
 		this._editors.title = this._createEditor(this.entryTitleNode, null);
 		this.setFieldValidity("title",true);
 		
-		var authorHeader = new dojox.atom.widget.EntryHeader({title: _nlsResources.authors});
+		var authorHeader = new widget.EntryHeader({title: _nlsResources.authors});
 		this.entryAuthorHeader.appendChild(authorHeader.domNode);
 
 		this._editors.authors = this._createPeopleEditor(this.entryAuthorNode, {name: "Author"});
 		this.setFieldValidity("authors", true);
 		
-		var contributorHeader = new dojox.atom.widget.EntryHeader({title: _nlsResources.contributors});
+		var contributorHeader = new widget.EntryHeader({title: _nlsResources.contributors});
 		this.entryContributorHeader.appendChild(contributorHeader.domNode);
 
 		this._editors.contributors = this._createPeopleEditor(this.entryContributorNode, {name: "Contributor"});
 		this.setFieldValidity("contributors", true);
 		
-		var idHeader = new dojox.atom.widget.EntryHeader({title: _nlsResources.id});
+		var idHeader = new widget.EntryHeader({title: _nlsResources.id});
 		this.entryIdHeader.appendChild(idHeader.domNode);
 		
 		this._editors.id = this._createEditor(this.entryIdNode, null);
 		this.setFieldValidity("id",true);
 
-		var updatedHeader = new dojox.atom.widget.EntryHeader({title: _nlsResources.updated});
+		var updatedHeader = new widget.EntryHeader({title: _nlsResources.updated});
 		this.entryUpdatedHeader.appendChild(updatedHeader.domNode);
 		
 		this._editors.updated = this._createEditor(this.entryUpdatedNode, null);
 		this.setFieldValidity("updated",true);
 
-		var summaryHeader = new dojox.atom.widget.EntryHeader({title: _nlsResources.summary});
+		var summaryHeader = new widget.EntryHeader({title: _nlsResources.summary});
 		this.entrySummaryHeader.appendChild(summaryHeader.domNode);
 		
 		this._editors.summary = this._createEditor(this.entrySummaryNode, null, true);
 		this.setFieldValidity("summaryedit",true);
 		this.setFieldValidity("summary",true);
 
-		var contentHeader = new dojox.atom.widget.EntryHeader({title: _nlsResources.content});
+		var contentHeader = new widget.EntryHeader({title: _nlsResources.content});
 		this.entryContentHeader.appendChild(contentHeader.domNode);
 		
 		this._editors.content = this._createEditor(this.entryContentNode, null, true);
@@ -954,29 +968,29 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 		// description: Function to display the appropriate sections based on validity.
 		
 		// Hide select boxes.
-		dojo.style(this.entrySummarySelect, 'display', 'none');
-		dojo.style(this.entryContentSelect, 'display', 'none');
-		dojo.style(this.entryTitleSelect, 'display', 'none');
+		domStyle.set(this.entrySummarySelect, 'display', 'none');
+		domStyle.set(this.entryContentSelect, 'display', 'none');
+		domStyle.set(this.entryTitleSelect, 'display', 'none');
 
 		// Show select boxes if the flags are set.
 		if(this.isFieldValid("contentedit")){
-			dojo.style(this.entryContentSelect, 'display', '');
+			domStyle.set(this.entryContentSelect, 'display', '');
 		}
 		if(this.isFieldValid("summaryedit")){
-			dojo.style(this.entrySummarySelect, 'display', '');
+			domStyle.set(this.entrySummarySelect, 'display', '');
 		}
 		if(this.isFieldValid("titleedit")){
-			dojo.style(this.entryTitleSelect, 'display', '');
+			domStyle.set(this.entryTitleSelect, 'display', '');
 		}
 		// Call super's _displaySections.
-		dojox.atom.widget.FeedEntryEditor.superclass._displaySections.apply(this);
+		widget.FeedEntryEditor.superclass._displaySections.apply(this);
 		
 		// If we have editors to load after the nodes are created on the page, execute those now.
 		if(this._toLoad){
 			for(var i in this._toLoad){
 				var editor;
 				if(this._toLoad[i].generateEditor){
-					editor = dojo.hitch(this._toLoad[i], this._toLoad[i].generateEditor)();
+					editor = lang.hitch(this._toLoad[i], this._toLoad[i].generateEditor)();
 				}else{
 					editor = this._toLoad[i];
 				}
@@ -988,13 +1002,13 @@ dojo.declare("dojox.atom.widget.FeedEntryEditor",dojox.atom.widget.FeedEntryView
 	}
 });
 
-dojo.declare("dojox.atom.widget.PeopleEditor",[dijit._Widget, dijit._Templated, dijit._Container],{
-		//	summary: 
-		//		An editor for dojox.atom.io.model.Person objects. 
-		//	description: 
+widget.PeopleEditor = dojo.declare(/*===== "dojox.atom.widget.PeopleEditor", =====*/ [_Widget, _Templated, _Container],{
+		//	summary:
+		//		An editor for dojox.atom.io.model.Person objects.
+		//	description:
 		//		An editor for dojox.atom.io.model.Person objects.  Displays multiple rows for the respective arrays
 		//		of people.  Can add/remove rows on the fly.
-		templateString: dojo.cache("dojox.atom", "widget/templates/PeopleEditor.html"),
+		templateString: peopleEditorTemplate,
 
 		_rows: [],
 		_editors: [],
@@ -1003,7 +1017,7 @@ dojo.declare("dojox.atom.widget.PeopleEditor",[dijit._Widget, dijit._Templated, 
 		
 		postCreate: function(){
 			// Initializer function for the PeopleEditor widget.
-			var _nlsResources = dojo.i18n.getLocalization("dojox.atom.widget", "PeopleEditor");
+			var _nlsResources = i18nPeople;
 			if(this.name){
 				if(this.name == "Author"){
 					this.peopleEditorButton.appendChild(document.createTextNode("["+_nlsResources.addAuthor+"]"));
@@ -1037,9 +1051,9 @@ dojo.declare("dojox.atom.widget.PeopleEditor",[dijit._Widget, dijit._Templated, 
 		},
 		
 		_createEditors: function(/*string*/name, /*string*/email, /*string*/uri, /*int*/index, /*string*/widgetName){
-			//	summary: 
+			//	summary:
 			//		creates editor boxes (textbox widgets) for the individual values of a Person.
-			//	description: 
+			//	description:
 			//		creates editor boxes (textbox widgets) for the individual values of a Person.
 			//
 			//	name:
@@ -1048,7 +1062,7 @@ dojo.declare("dojox.atom.widget.PeopleEditor",[dijit._Widget, dijit._Templated, 
 			//		The email of this Person.
 			//	uri:
 			//		The Person's URI.
-			//	index: 
+			//	index:
 			//		The row index to use for this Person.
 			var row = document.createElement("tr");
 			this.peopleEditorEditors.appendChild(row);
@@ -1068,8 +1082,8 @@ dojo.declare("dojox.atom.widget.PeopleEditor",[dijit._Widget, dijit._Templated, 
 			row = document.createElement("span");
 			node.appendChild(row);
 			row.className = "peopleEditorButton";
-			dojo.style(row, 'font-size', 'x-small');
-			dojo.connect(row, "onclick", this, "_removeEditor");
+			domStyle.set(row, 'font-size', 'x-small');
+			connect.connect(row, "onclick", this, "_removeEditor");
 			row.id = "remove"+index;
 			
 			node = document.createTextNode("[X]");
@@ -1081,21 +1095,21 @@ dojo.declare("dojox.atom.widget.PeopleEditor",[dijit._Widget, dijit._Templated, 
 			
 			var labelNode = document.createElement("td");
 			row.appendChild(labelNode);
-			dojo.style(labelNode, 'width', '20%');
+			domStyle.set(labelNode, 'width', '20%');
 			
 			node = document.createElement("td");
 			row.appendChild(node);
 			
 			row = document.createElement("table");
 			labelNode.appendChild(row);
-			dojo.style(row, 'width', '100%');
+			domStyle.set(row, 'width', '100%');
 			
 			labelNode = document.createElement("tbody");
 			row.appendChild(labelNode);
 			
 			row = document.createElement("table");
 			node.appendChild(row);
-			dojo.style(row, 'width', '100%');
+			domStyle.set(row, 'width', '100%');
 			
 			node = document.createElement("tbody");
 			row.appendChild(node);
@@ -1107,23 +1121,23 @@ dojo.declare("dojox.atom.widget.PeopleEditor",[dijit._Widget, dijit._Templated, 
 		},
 		
 		_createEditor: function(/*string*/value, /*string*/id, /*string*/name, /*DOM node*/labelNode, /*DOM node*/node){
-			//	summary: 
+			//	summary:
 			//		Creates an individual editor widget (textbox) for a value.
-			// 	description: 
+			// 	description:
 			//		Creates an individual editor widget (textbox) for a value.
 			//
-			// 	value: 
+			// 	value:
 			//		The initial value of the textbox
 			// 	id:
 			//		The id the textbox should have.
-			// 	name: 
+			// 	name:
 			//		The text to put in the label element for this textbox.
 			//	labelNode:
 			//		The node to attach the label to.
 			//	node:
 			//		The node to attach the editor rows to.
 			//
-			//	returns: 
+			//	returns:
 			//		Editor widget.
 			var row = document.createElement("tr");
 			labelNode.appendChild(row);
@@ -1144,25 +1158,25 @@ dojo.declare("dojox.atom.widget.PeopleEditor",[dijit._Widget, dijit._Templated, 
 			var viewNode = document.createElement("input");
 			viewNode.setAttribute('id', id);
 			node.appendChild(viewNode);
-			dojo.style(viewNode, 'width', '95%');
+			domStyle.set(viewNode, 'width', '95%');
 			
-			var box = new dijit.form.TextBox({},viewNode);
+			var box = new TextBox({},viewNode);
 			box.attr('value', value);
 			return box;
 		},
 		
 		_removeEditor: function(/*object*/event){
-			//	summary: 
+			//	summary:
 			//		Removes a Person from our list of editors.
-			//	description: 
-			//		Removes a Person from our list of editors by removing the block of editors that 
+			//	description:
+			//		Removes a Person from our list of editors by removing the block of editors that
 			//		make up that Person.
 			//
 			//	event:
 			//		The event generated when the remove button is pressed on the page.
 			var target = null;
 		
-			if(dojo.isIE){
+			if(has("ie")){
 				target = event.srcElement;
 			}else{
 				target = event.target;
@@ -1174,11 +1188,11 @@ dojo.declare("dojox.atom.widget.PeopleEditor",[dijit._Widget, dijit._Templated, 
 				this._editors[id][key].destroy();
 			}
 			
-			var node = dojo.byId("editorsRow"+id);
+			var node = domUtil.byId("editorsRow"+id);
 			var parent = node.parentNode;
 			parent.removeChild(node);
 			
-			node = dojo.byId("removeRow"+id);
+			node = domUtil.byId("removeRow"+id);
 			parent = node.parentNode;
 			parent.removeChild(node);
 
@@ -1191,9 +1205,9 @@ dojo.declare("dojox.atom.widget.PeopleEditor",[dijit._Widget, dijit._Templated, 
 		},
 		
 		_add: function(){
-			//	summary: 
+			//	summary:
 			//		Adds a new block of blank editors to represent a Person.
-			//	description: 
+			//	description:
 			//		Adds a new block of blank editors to represent a Person.
 			this._createEditors(null, null, null, this._index);
 			this._index++;
@@ -1201,12 +1215,12 @@ dojo.declare("dojox.atom.widget.PeopleEditor",[dijit._Widget, dijit._Templated, 
 		},
 		
 		getValues: function(){
-			//	summary: 
+			//	summary:
 			//		Gets the values of this editor in an array.
-			//	description: 
+			//	description:
 			//		Gets the values of this editor in an array, with each Person as an object within the array.
 			//
-			//	returns: 
+			//	returns:
 			//		An array of anonymous objects representing dojox.atom.io.model.Persons.
 			var values = [];
 			for(var i in this._editors){
@@ -1216,4 +1230,6 @@ dojo.declare("dojox.atom.widget.PeopleEditor",[dijit._Widget, dijit._Templated, 
 			}
 			return values;
 		}
+});
+return widget.FeedEntryEditor;
 });

@@ -1,6 +1,4 @@
-dojo.provide("dojox.rpc.Service");
-
-dojo.require("dojo.AdapterRegistry");
+define("dojox/rpc/Service", ["dojo", "dojox", "dojo/AdapterRegistry", "dojo/_base/url"], function(dojo, dojox) {
 
 dojo.declare("dojox.rpc.Service", null, {
 	constructor: function(smd, options){
@@ -22,7 +20,7 @@ dojo.declare("dojox.rpc.Service", null, {
 		//	description:
 		//		dojox.rpc.Service must be loaded prior to any plugin services like dojox.rpc.Rest
 		// 		dojox.rpc.JsonRpc in order for them to register themselves, otherwise you get
-		// 		a "No match found" error.  
+		// 		a "No match found" error.
 		var url;
 		var self = this;
 		function processSmd(smd){
@@ -113,7 +111,7 @@ dojo.declare("dojox.rpc.Service", null, {
 						delete args[i];
 					}
 				}
-				
+
 			}
 			// setting default values
 			for(i=0; i< parameters.length; i++){
@@ -136,11 +134,11 @@ dojo.declare("dojox.rpc.Service", null, {
 				args = args[0];
 			}
 		}
-		
+
 		if(dojo.isObject(this._options)){
 			args = dojo.mixin(args, this._options);
 		}
-		
+
 		var schema = method._schema || method.returns; // serialize with the right schema for the context;
 		var request = envDef.serialize.apply(this, [smd, method, args]);
 		request._envDef = envDef;// save this for executeMethod
@@ -150,12 +148,13 @@ dojo.declare("dojox.rpc.Service", null, {
 		return dojo.mixin(request, {
 			sync: dojox.rpc._sync,
 			contentType: contentType,
-			headers: {},
+			headers: method.headers || smd.headers || request.headers || {},
 			target: request.target || dojox.rpc.getTarget(smd, method),
 			transport: method.transport || smd.transport || request.transport,
 			envelope: method.envelope || smd.envelope || request.envelope,
 			timeout: method.timeout || smd.timeout,
 			callbackParamName: method.callbackParamName || smd.callbackParamName,
+			rpcObjectParamName: method.rpcObjectParamName || smd.rpcObjectParamName,
 			schema: schema,
 			handleAs: request.handleAs || "auto",
 			preventCache: method.preventCache || smd.preventCache,
@@ -170,7 +169,7 @@ dojo.declare("dojox.rpc.Service", null, {
 		}
 		var request = this._getRequest(method,args);
 		var deferred = dojox.rpc.transportRegistry.match(request.transport).fire(request);
-		
+
 		deferred.addBoth(function(results){
 			return request._envDef.deserialize.call(this,results);
 		});
@@ -286,7 +285,7 @@ dojox.rpc.transportRegistry.register(
 	function(str){ return str == "GET"; },
 	{
 		fire: function(r){
-			r.url=  r.target + (r.data ? '?'+  r.data : '');
+			r.url=  r.target + (r.data ? '?' + ((r.rpcObjectParamName) ? r.rpcObjectParamName + '=' : '') + r.data : '');
 			return dojo.xhrGet(r);
 		}
 	}
@@ -299,7 +298,7 @@ dojox.rpc.transportRegistry.register(
 	function(str){ return str == "JSONP"; },
 	{
 		fire: function(r){
-			r.url = r.target + ((r.target.indexOf("?") == -1) ? '?' : '&') + r.data;
+			r.url = r.target + ((r.target.indexOf("?") == -1) ? '?' : '&') + ((r.rpcObjectParamName) ? r.rpcObjectParamName + '=' : '') + r.data;
 			r.callbackParamName = r.callbackParamName || "callback";
 			return dojo.io.script.get(r);
 		}
@@ -317,3 +316,7 @@ dojo._contentHandlers.auto = function(xhr){
 		retContentType.match(/\/xml/) ? handlers.xml(xhr) : handlers.text(xhr);
 	return results;
 };
+
+return dojox.rpc.Service;
+
+});

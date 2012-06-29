@@ -1,21 +1,15 @@
-<html>
-	<!--
-		NOTE: we are INTENTIONALLY in quirks mode. It makes it much easier to
-		get a "full screen" UI w/ straightforward CSS.
-	-->
-	<!--
-		// TODO: provide a UI for prompted tests
-	-->
+<!DOCTYPE html>
+<html style="height:100%;">
 	<head>
-		<title>The Dojo Unit Test Harness, $Rev: 22331 $</title>
+		<title>The Dojo Unit Test Harness, $Rev: 25896 $</title>
 
 		<script type="text/javascript">
-			// workaround for bug in Safari 3.  See #7189
+			// workaround for bug in Safari 3.	See #7189
 			if (/3[\.0-9]+ Safari/.test(navigator.appVersion))
 			{
 				window.console = {
-				    origConsole: window.console,
-				    log: function(s){
+					origConsole: window.console,
+						log: function(s){
 						this.origConsole.log(s);
 					},
 					info: function(s){
@@ -31,50 +25,8 @@
 			}
 		</script>
 
-		<script type="text/javascript">
-			window.dojoUrl = "../../dojo/dojo.js";
-			window.testUrl = "";
-			window.testModule = "";
-
-			// parse out our test URL and our Dojo URL from the query string
-			var qstr = window.location.search.substr(1);
-			if(qstr.length){
-				var qparts = qstr.split("&");
-				for(var x=0; x<qparts.length; x++){
-					var tp = qparts[x].split("="), name=tp[0], value=tp[1].replace(/[<>"':\(\)]/g, "");	// replace() to avoid XSS attack
-					//Avoid URLs that use the same protocol but on other domains, for security reasons.
-					if (value.indexOf("//") === 0 || value.indexOf("\\\\") === 0) {
-						throw "Insupported URL";
-					}
-					switch(name){
-						case "dojoUrl":
-						case "testUrl":
-						case "testModule":
-							window[name] = value;
-							break;
-						case "registerModulePath":
-							var modules = value.split(";");
-							window.registerModulePath=[];
-							for (var i=0; i<modules.length;i++){
-								window.registerModulePath.push(modules[i].split(","));
-							}
-						break;
-					}
-				}
-			}
-
-			document.write("<scr"+"ipt type='text/javascript' djConfig='isDebug: true' src='"+dojoUrl+"'></scr"+"ipt>");
-		</script>
-		<script type="text/javascript">
-			try{
-				dojo.require("doh.runner");
-			}catch(e){
-				document.write("<scr"+"ipt type='text/javascript' src='runner.js'></scr"+"ipt>");
-			}
-			if(testUrl.length){
-				document.write("<scr"+"ipt type='text/javascript' src='"+testUrl+".js'></scr"+"ipt>");
-			}
-		</script>
+		<script type="text/javascript" src="_parseURLargs.js"></script>
+	
 		<style type="text/css">
 			@import "../../dojo/resources/dojo.css";
 			/*
@@ -231,7 +183,7 @@
 			}
 		</style>
 	</head>
-	<body>
+	<body style="height: 100%;">
 		<table id="testLayout" cellpadding="0" cellspacing="0" style="margin: 0;">
 			<tr valign="top" height="40">
 				<td colspan="2" id="logoBar">
@@ -260,11 +212,11 @@
 				<td width="*" class="header" valign="bottom">
 					<button class="tab" onclick="doh.showTestPage();">Test Page</button>
 					<button class="tab" onclick="doh.showLogPage();">Log</button>
-                    <button class="tab" onclick="doh.showPerfTestsPage();">Performance Tests Results</button>
+										<button class="tab" onclick="doh.showPerfTestsPage();">Performance Tests Results</button>
 				</td>
 			</tr>
 			<tr valign="top" style="border: 0; padding: 0; margin: 0;">
-				<td height="100%" style="border: 0; padding: 0; margin: 0;">
+				<td style="border: 0; padding: 0; margin: 0; height:100%;">
 					<div id="testListContainer">
 						<table cellpadding="0" cellspacing="0" border="0"
 							width="100%" id="testList" style="margin: 0;" onclick="doh._jumpToLog(arguments[0]);">
@@ -298,8 +250,8 @@
 						</table>
 					</div>
 				</td>
-				<td>
-					<div style="position: relative; width: 99%; height: 100%; top: 0px; left: 0px;">
+				<td style="height: 100%;">
+					<div style="position: relative; width: 100%; height: 100%; top: 0px; left: 0px;">
 						<div class="tabBody"
 							style="z-index: 1;">
 							<pre id="logBody"></pre>

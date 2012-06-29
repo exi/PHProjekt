@@ -1,6 +1,7 @@
-dojo.provide("tests.data.ItemFileReadStore");
-dojo.require("tests.data.readOnlyItemFileTestTemplates");
-dojo.require("dojo.data.ItemFileReadStore");
+// FIXME: this test assumes the existence of the global object "tests"
+tests= typeof tests=="undefined" ? {} : tests;
 
-tests.data.readOnlyItemFileTestTemplates.registerTestsForDatastore("dojo.data.ItemFileReadStore");
+define(["./readOnlyItemFileTestTemplates", "dojo/data/ItemFileReadStore"], function() {
+	tests.data.readOnlyItemFileTestTemplates.registerTestsForDatastore("dojo.data.ItemFileReadStore");
+});
 

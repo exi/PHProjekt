@@ -1,23 +1,33 @@
-dojo.provide("dojox.form.FileInputAuto");
+define([
+	"dojo/_base/declare",
+	"dojo/_base/lang",
+	"dojo/_base/fx",
+	"dojo/_base/window",
+	"dojo/dom-style",
+	"dojo/_base/sniff",
+	"dojo/text!./resources/FileInputAuto.html",
+	"dojox/form/FileInput",
+	"dojo/io/iframe"
+], 
+function(declare, lang, fx, win, domStyle, has, template, FileInput, ioIframe){
 
-dojo.require("dojox.form.FileInput");
-dojo.require("dojo.io.iframe"); 
-
-dojo.declare("dojox.form.FileInputAuto",
-	dojox.form.FileInput,
+	/*=====
+		FileInput = dojox.form.FileInput;
+	=====*/
+var FileInputAuto = declare("dojox.form.FileInputAuto", FileInput, 
 	{
-	// summary: An extension on dojox.form.FileInput providing background upload progress
+	// summary: An extension on FileInput providing background upload progress
 	//
 	// description: An extended version of FileInput - when the user focuses away from the input
-	//	the selected file is posted via dojo.io.iframe to the url. example implementation
+	//	the selected file is posted via ioIframe to the url. example implementation
 	//	comes with PHP solution for handling upload, and returning required data.
-	//	
-	// notes: the return data from the io.iframe is used to populate the input element with 
+	//
+	// notes: the return data from the io.iframe is used to populate the input element with
 	//	data regarding the results. it will be a JSON object, like:
-	//	
+	//
 	//	results = { size: "1024", filename: "file.txt" }
-	//	
-	//	all the parameters allowed to dojox.form.FileInput apply
+	//
+	//	all the parameters allowed to FileInput apply
 
 	// url: String
 	// 	the URL where our background FileUpload will be sent
@@ -34,9 +44,9 @@ dojo.declare("dojox.form.FileInputAuto",
 	duration: 500,
 
 	// uploadMessage: String
-	//	
+	//
 	//	FIXME: i18n somehow?
-	uploadMessage: "Uploading ...", 
+	uploadMessage: "Uploading ...",
 	
 	// triggerEvent: String
 	//		Event which triggers the upload. Defaults to onblur, sending the file selected
@@ -47,10 +57,10 @@ dojo.declare("dojox.form.FileInputAuto",
 	_sent: false,
 	
 	// small template changes, new attachpoint: overlay
-	templateString: dojo.cache("dojox.form","resources/FileInputAuto.html"),
+	templateString: template,
 	
 	onBeforeSend: function(){
-		// summary: Called immediately before a FileInput sends it's file via io.iframe.send. 
+		// summary: Called immediately before a FileInput sends it's file via io.iframe.send.
 		//		The return of this function is passed as the `content` member in the io.iframe IOArgs
 		//		object.
 		return {};
@@ -59,7 +69,7 @@ dojo.declare("dojox.form.FileInputAuto",
 	startup: function(){
 		// summary: add our extra blur listeners
 		this._blurListener = this.connect(this.fileInput, this.triggerEvent, "_onBlur");
-		this._focusListener = this.connect(this.fileInput, "onfocus", "_onFocus"); 
+		this._focusListener = this.connect(this.fileInput, "onfocus", "_onFocus");
 		this.inherited(arguments);
 	},
 
@@ -72,7 +82,7 @@ dojo.declare("dojox.form.FileInputAuto",
 		// summary: start the upload timer
 		if(this._blurTimer){ clearTimeout(this._blurTimer); }
 		if(!this._sent){
-			this._blurTimer = setTimeout(dojo.hitch(this,"_sendFile"),this.blurDelay);		
+			this._blurTimer = setTimeout(lang.hitch(this,"_sendFile"),this.blurDelay);
 		}
 	},
 
@@ -91,19 +101,19 @@ dojo.declare("dojox.form.FileInputAuto",
 
 		this._sending = true;
 
-		dojo.style(this.fakeNodeHolder,"display","none");
-		dojo.style(this.overlay,{
+		domStyle.set(this.fakeNodeHolder,"display","none");
+		domStyle.set(this.overlay,{
 			opacity:0,
 			display:"block"
 		});
 
 		this.setMessage(this.uploadMessage);
 
-		dojo.fadeIn({ node: this.overlay, duration:this.duration }).play();
+		fx.fadeIn({ node: this.overlay, duration:this.duration }).play();
 
-		var _newForm; 
-		if(dojo.isIE){
-			// just to reiterate, IE is a steaming pile of code. 
+		var _newForm;
+		if(has('ie') < 9 || (has('ie') && has('quirks'))){
+			// just to reiterate, IE is a steaming pile of code.
 			_newForm = document.createElement('<form enctype="multipart/form-data" method="post">');
 			_newForm.encoding = "multipart/form-data";
 			
@@ -113,13 +123,13 @@ dojo.declare("dojox.form.FileInputAuto",
 			_newForm.setAttribute("enctype","multipart/form-data");
 		}
 		_newForm.appendChild(this.fileInput);
-		dojo.body().appendChild(_newForm);
+		win.body().appendChild(_newForm);
 	
-		dojo.io.iframe.send({
+		ioIframe.send({
 			url: this.url,
 			form: _newForm,
 			handleAs: "json",
-			handle: dojo.hitch(this,"_handleSend"),
+			handle: lang.hitch(this,"_handleSend"),
 			content: this.onBeforeSend()
 		});
 	},
@@ -132,22 +142,22 @@ dojo.declare("dojox.form.FileInputAuto",
 		
 		this._sent = true;
 		this._sending = false;
-		dojo.style(this.overlay,{
+		domStyle.set(this.overlay,{
 			opacity:0,
 			border:"none",
 			background:"none"
-		}); 
+		});
 
 		this.overlay.style.backgroundImage = "none";
 		this.fileInput.style.display = "none";
 		this.fakeNodeHolder.style.display = "none";
-		dojo.fadeIn({ node:this.overlay, duration:this.duration }).play(250);
+		fx.fadeIn({ node:this.overlay, duration:this.duration }).play(250);
 
 		this.disconnect(this._blurListener);
 		this.disconnect(this._focusListener);
 
 		//remove the form used to send the request
-		dojo.body().removeChild(ioArgs.args.form);
+		win.body().removeChild(ioArgs.args.form);
 		this.fileInput = null;
 
 		this.onComplete(data,ioArgs,this);
@@ -166,19 +176,18 @@ dojo.declare("dojox.form.FileInputAuto",
 		this._sent = false;
 		this._sending = false;
 		this._blurListener = this.connect(this.fileInput, this.triggerEvent,"_onBlur");
-		this._focusListener = this.connect(this.fileInput,"onfocus","_onFocus"); 
+		this._focusListener = this.connect(this.fileInput,"onfocus","_onFocus");
 	},
 
 	onComplete: function(data,ioArgs,widgetRef){
-		// summary: stub function fired when an upload has finished. 
+		// summary: stub function fired when an upload has finished.
 		// data: the raw data found in the first [TEXTAREA] tag of the post url
-		// ioArgs: the dojo.Deferred data being passed from the handle: callback
+		// ioArgs: the Deferred data being passed from the handle: callback
 		// widgetRef: this widget pointer, so you can set this.overlay to a completed/error message easily
 	}
 });
 
-dojo.declare("dojox.form.FileInputBlind",
-	dojox.form.FileInputAuto,
+declare("dojox.form.FileInputBlind", FileInputAuto,
 	{
 	// summary: An extended version of dojox.form.FileInputAuto
 	//	that does not display an input node, but rather only a button
@@ -187,23 +196,26 @@ dojo.declare("dojox.form.FileInputBlind",
 	startup: function(){
 		// summary: hide our fileInput input field
 		this.inherited(arguments);
-		this._off = dojo.style(this.inputNode,"width");
+		this._off = domStyle.get(this.inputNode,"width");
 		this.inputNode.style.display = "none";
 		this._fixPosition();
 	},
 	
-	_fixPosition: function(){		
-		// summary: in this case, set the button under where the visible button is 
-		if(dojo.isIE){
-			dojo.style(this.fileInput,"width","1px");
+	_fixPosition: function(){
+		// summary: in this case, set the button under where the visible button is
+		if(has('ie')){
+			domStyle.set(this.fileInput,"width","1px");
 		}else{
-			dojo.style(this.fileInput,"left","-"+(this._off)+"px");
+			domStyle.set(this.fileInput,"left","-"+(this._off)+"px");
 		}
 	},
 
 	reset: function(e){
 		// summary: onclick, we need to reposition our newly created input type="file"
 		this.inherited(arguments);
-		this._fixPosition(); 
+		this._fixPosition();
 	}
+});
+
+return FileInputAuto;
 });

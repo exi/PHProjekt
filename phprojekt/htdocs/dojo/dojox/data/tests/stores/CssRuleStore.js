@@ -13,7 +13,7 @@ dojox.data.tests.stores.CssRuleStore.createStore = function(context){
 		if(!dojox.data.tests.stores.CssRuleStore._loaded){
 			var head = dojo.doc.getElementsByTagName('head')[0];
 			var link = document.createElement('link');
-			link.href = dojo.moduleUrl('dojox.data.tests.stores', 'test1.css').toString();
+			link.href = require.toUrl('dojox/data/tests/stores/test1.css').toString();
 			link.rel = "stylesheet";
 			link.type = "text/css";
 			head.appendChild(link);
@@ -21,10 +21,10 @@ dojox.data.tests.stores.CssRuleStore.createStore = function(context){
 			var text;
 			if(dojo.isIE){
 				style = document.createStyleSheet();
-				style.cssText = '@import "'+dojo.moduleUrl('dojox.data.tests.stores', 'test2.css').toString()+'";';
+				style.cssText = '@import "'+require.toUrl('dojox/data/tests/stores/test2.css').toString()+'";';
 			}else{
 				style = document.createElement('style');
-				text = document.createTextNode('@import "'+dojo.moduleUrl('dojox.data.tests.stores', 'test2.css').toString()+'";');
+				text = document.createTextNode('@import "'+require.toUrl('dojox/data/tests/stores/test2.css').toString()+'";');
 				style.appendChild(text);
 				head.appendChild(style);
 			}
@@ -55,7 +55,7 @@ dojox.data.tests.stores.CssRuleStore.verifyItems = function(cssRuleStore, items,
 	//		the same as the compareArray
 	if(items.length != compareArray.length){ return false; }
 	for(var i = 0; i < items.length; i++){
-		if(!(cssRuleStore.getValue(items[i], attribute) === (dojo.isWebKit?compareArray[i].toLowerCase():compareArray[i]))){
+		if(!(cssRuleStore.getValue(items[i], attribute) === compareArray[i])){
 			return false; //Boolean
 		}
 	}
@@ -68,16 +68,16 @@ dojox.data.tests.stores.CssRuleStore.error = function(t, d, errData){
 	for (var i in errData) {
 		console.log(errData[i]);
 	}
-	d.errback(errData);	
+	d.errback(errData);
 };
 
-doh.register("dojox.data.tests.stores.CssRuleStore", 
+doh.register("dojox.data.tests.stores.CssRuleStore",
 	[
 		{
 			name: "testReadAPI_fetch",
 			timeout:	10000, //10 seconds.  Flickr can sometimes be slow.
 			runTest: function(t) {
-				//	summary: 
+				//	summary:
 				//		Simple test of a basic fetch on CssRuleStorem longer timeout because initial load can sometimes take a bit..
 				//	description:
 				//		Simple test of a basic fetch on CssRuleStorem longer timeout because initial load can sometimes take a bit.
@@ -99,7 +99,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			}
 		},
 		function testReadAPI_fetch_all(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of a basic fetch on CssRuleStore.
 			//	description:
 			//		Simple test of a basic fetch on CssClassStore.
@@ -119,7 +119,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d; //Object
 		},
 		function testReadAPI_fetch_withinContext(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of a basic fetch on CssRuleStore.
 			//	description:
 			//		Simple test of a basic fetch on CssRuleStore.
@@ -141,7 +141,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d; //Object
 		},
 		function testReadAPI_fetch_withinMultipleSheetContext(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of a basic fetch on CssRuleStore.
 			//	description:
 			//		Simple test of a basic fetch on CssRuleStore.
@@ -163,7 +163,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d; //Object
 		},
 		function testReadAPI_fetch_switchContext(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of a basic fetch on CssRuleStore.
 			//	description:
 			//		Simple test of a basic fetch on CssRuleStore.
@@ -196,7 +196,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d; //Object
 		},
 		function testReadAPI_fetch_one(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of a basic fetch on CsvStore of a single item.
 			//	description:
 			//		Simple test of a basic fetch on CsvStore of a single item.
@@ -208,14 +208,14 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 				d.callback(true);
 			}
 			cssRuleStore.fetch({
-				query: {'selector': '.linkTestClass'}, 
-				onComplete: onComplete, 
+				query: {'selector': '.linkTestClass'},
+				onComplete: onComplete,
 				onError: dojo.partial(dojox.data.tests.stores.CssRuleStore.error, t, d)
 			});
 			return d; //Object
 		},
 		function testReadAPI_fetch_one_longer(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of a basic fetch on CsvStore of a single item.
 			//	description:
 			//		Simple test of a basic fetch on CsvStore of a single item.
@@ -227,14 +227,14 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 				d.callback(true);
 			}
 			cssRuleStore.fetch({
-				query: {'selector': '.linkTestClass .test'}, 
-				onComplete: onComplete, 
+				query: {'selector': '.linkTestClass .test'},
+				onComplete: onComplete,
 				onError: dojo.partial(dojox.data.tests.stores.CssRuleStore.error, t, d)
 			});
 			return d; //Object
 		},
 		function testReadAPI_fetch_Multiple(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of a basic fetch on CsvStore of a single item.
 			//	description:
 			//		Simple test of a basic fetch on CsvStore of a single item.
@@ -260,14 +260,14 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			}
 			
 			try{
-				cssRuleStore.fetch({ 
-					query: {'selector': '.embeddedTestClass'}, 
-					onComplete: onCompleteOne, 
+				cssRuleStore.fetch({
+					query: {'selector': '.embeddedTestClass'},
+					onComplete: onCompleteOne,
 					onError: dojo.partial(dojox.data.tests.stores.CssRuleStore.error, t, d)
 				});
-				cssRuleStore.fetch({ 
-					query: {'selector': '.linkTestClass'}, 
-					onComplete: onCompleteTwo, 
+				cssRuleStore.fetch({
+					query: {'selector': '.linkTestClass'},
+					onComplete: onCompleteTwo,
 					onError: dojo.partial(dojox.data.tests.stores.CssRuleStore.error, t, d)
 				});
 			}catch(e){
@@ -279,7 +279,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d; //Object
 		},
 		function testReadAPI_fetch_MultipleMixed(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of a basic fetch on CsvStore of a single item.
 			//	description:
 			//		Simple test of a basic fetch on CsvStore of a single item.
@@ -291,12 +291,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			function onComplete(items, request){
 				done[0] = true;
 				t.is(1, items.length);
-				if(dojo.isWebKit){
-					// Safari is dumb, see comment in CssRuleStore about bug in selectorText
-					t.is('.embeddedtestclass', cssRuleStore.getValue(items[0], 'selector'));
-				}else{
-					t.is('.embeddedTestClass', cssRuleStore.getValue(items[0], 'selector'));
-				}
+				t.is('.embeddedTestClass', cssRuleStore.getValue(items[0], 'selector'));
 				if(done[0] && done[1]){
 					d.callback(true);
 				}
@@ -305,20 +300,15 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			function onItem(item){
 				done[1] = true;
 				t.assertTrue(item !== null);
-				if(dojo.isWebKit){
-					// Safari is dumb, see comment in CssRuleStore about bug in selectorText
-					t.is('.linktestclass .test', cssRuleStore.getValue(item, 'selector'));
-				}else{
-					t.is('.linkTestClass .test', cssRuleStore.getValue(item, 'selector'));
-				}
+				t.is('.linkTestClass .test', cssRuleStore.getValue(item, 'selector'));
 				if(done[0] && done[1]){
 					d.callback(true);
 				}
 			}
 
-			cssRuleStore.fetch({ 
-				query: {'selector': '.embeddedTestClass'}, 
-				onComplete: onComplete, 
+			cssRuleStore.fetch({
+				query: {'selector': '.embeddedTestClass'},
+				onComplete: onComplete,
 				onError: dojo.partial(dojox.data.tests.stores.CssRuleStore.error, t, d)
 			});
 			
@@ -330,7 +320,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d; //Object
 		},
 		function testReadAPI_fetch_all_streaming(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of a basic fetch on CsvStore.
 			//	description:
 			//		Simple test of a basic fetch on CsvStore.
@@ -356,14 +346,14 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			cssRuleStore.fetch({
 				query: {'selector': '*TestClass'},
 				onBegin: onBegin,
-				onItem: onItem, 
+				onItem: onItem,
 				onComplete: onComplete,
 				onError: dojo.partial(dojox.data.tests.stores.CssRuleStore.error, t, d)
 			});
 			return d; //Object
 		},
 		function testReadAPI_fetch_paging(t){
-			 //	summary: 
+			 //	summary:
 			 //		Test of multiple fetches on a single result.  Paging, if you will.
 			 //	description:
 			 //		Test of multiple fetches on a single result.  Paging, if you will.
@@ -378,12 +368,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			
 			function dumpSecondFetch(items, request){
 				t.is(1, items.length);
-				if(dojo.isWebKit){
-					// Safari is dumb, see comment in CssRuleStore about bug in selectorText
-					t.is('.embeddedtestclass', cssRuleStore.getValue(items[0], 'selector'));
-				}else{
-					t.is('.embeddedTestClass', cssRuleStore.getValue(items[0], 'selector'));
-				}
+				t.is('.embeddedTestClass', cssRuleStore.getValue(items[0], 'selector'));
 				request.start = 0;
 				request.count = 2;
 				request.onComplete = dumpThirdFetch;
@@ -409,7 +394,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 		},
 		
 		function testReadAPI_getLabel(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of the getLabel function against a store set that has a label defined.
 			//	description:
 			//		Simple test of the getLabel function against a store set that has a label defined.
@@ -420,23 +405,18 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 				t.assertEqual(items.length, 1);
 				var label = cssRuleStore.getLabel(items[0]);
 				t.assertTrue(label !== null);
-				if(dojo.isWebKit){
-					// Safari is dumb, see comment in CssRuleStore about bug in selectorText
-					t.assertEqual(".linktestclass", label);
-				}else{
-					t.assertEqual(".linkTestClass", label);
-				}
+				t.assertEqual(".linkTestClass", label);
 				d.callback(true);
 			}
 			cssRuleStore.fetch({
-				query: {'selector': '.linkTestClass'}, 
-				onComplete: onComplete, 
+				query: {'selector': '.linkTestClass'},
+				onComplete: onComplete,
 				onError: dojo.partial(dojox.data.tests.stores.CssRuleStore.error, t, d)
 			});
 			return d;
 		},
 		function testReadAPI_getLabelAttributes(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of the getLabelAttributes function against a store set that has a label defined.
 			//	description:
 			//		Simple test of the getLabelAttributes function against a store set that has a label defined.
@@ -450,15 +430,15 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 				t.assertEqual('selector', labelList[0]);
 				d.callback(true);
 			}
-			cssRuleStore.fetch({ 
-				query: {'selector': '.linkTestClass'}, 
-				onComplete: onComplete, 
+			cssRuleStore.fetch({
+				query: {'selector': '.linkTestClass'},
+				onComplete: onComplete,
 				onError: dojo.partial(dojox.data.tests.stores.CssRuleStore.error, t, d)
 			});
 			return d;
 		},
 		function testReadAPI_getValue(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of the getValue function of the store.
 			//	description:
 			//		Simple test of the getValue function of the store.
@@ -467,14 +447,9 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			var d = new doh.Deferred();
 			function onItem(item){
 				t.assertTrue(item !== null);
-				if(dojo.isWebKit){
-					// Safari is dumb, see comment in CssRuleStore about bug in selectorText
-					t.is('.linktestclass', cssRuleStore.getValue(item,'selector'));
-				}else{
-					t.is('.linkTestClass', cssRuleStore.getValue(item,'selector'));
-				}
+				t.is('.linkTestClass', cssRuleStore.getValue(item,'selector'));
 				t.assertTrue(cssRuleStore.getValue(item, 'parentStyleSheetHref').match('dojox/data/tests/stores/test1.css'));
-				d.callback(true);	
+				d.callback(true);
 			}
 			cssRuleStore.fetch({
 				query: {'selector': '.linkTestClass'},
@@ -484,7 +459,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d;
 		},
 		function testReadAPI_getValue_2(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of the getValue function of the store.
 			//	description:
 			//		Simple test of the getValue function of the store.
@@ -493,14 +468,9 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			var d = new doh.Deferred();
 			function onItem(item){
 				t.assertTrue(item !== null);
-				if(dojo.isWebKit){
-					// Safari is dumb, see comment in CssRuleStore about bug in selectorText
-					t.is('.importtestclass', cssRuleStore.getValue(item,'selector'));
-				}else{
-					t.is('.importTestClass', cssRuleStore.getValue(item,'selector'));
-				}
+				t.is('.importTestClass', cssRuleStore.getValue(item,'selector'));
 				t.assertTrue(cssRuleStore.getValue(item, 'parentStyleSheetHref').match('dojox/data/tests/stores/test2.css'));
-				d.callback(true);	
+				d.callback(true);
 			}
 			cssRuleStore.fetch({
 				query: {'selector': '.importTestClass'},
@@ -510,7 +480,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d;
 		},
 		function testReadAPI_getValues(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of the getValues function of the store.
 			//	description:
 			//		Simple test of the getValues function of the store.
@@ -522,13 +492,8 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 				var values = cssRuleStore.getValues(item,'selector');
 				t.assertTrue(dojo.isArray(values));
 				t.is(1, values.length);
-				if(dojo.isWebKit){
-					// Safari is dumb, see comment in CssRuleStore about bug in selectorText
-					t.is('.embeddedtestclass', values[0]);
-				}else{
-					t.is('.embeddedTestClass', values[0]);
-				}
-				d.callback(true);	
+				t.is('.embeddedTestClass', values[0]);
+				d.callback(true);
 			}
 			cssRuleStore.fetch({
 				query: {'selector': '.embeddedTestClass'},
@@ -538,7 +503,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d;
 		},
 		function testReadAPI_isItem(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of the isItem function of the store
 			//	description:
 			//		Simple test of the isItem function of the store
@@ -551,7 +516,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 				t.assertTrue(!cssRuleStore.isItem({ item: "not an item" }));
 				t.assertTrue(!cssRuleStore.isItem("not an item"));
 				t.assertTrue(!cssRuleStore.isItem(["not an item"]));
-				d.callback(true);	
+				d.callback(true);
 			}
 			cssRuleStore.fetch({
 				query: {'selector': '.embeddedTestClass'},
@@ -561,7 +526,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d;
 		},
 		function testReadAPI_hasAttribute(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of the hasAttribute function of the store
 			//	description:
 			//		Simple test of the hasAttribute function of the store
@@ -584,7 +549,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 					passed = true;
 				}
 				t.assertTrue(passed);
-				d.callback(true);	
+				d.callback(true);
 			}
 			cssRuleStore.fetch({
 				query: {'selector': '.embeddedTestClass'},
@@ -594,7 +559,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d;
 		},
 		function testReadAPI_containsValue(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of the containsValue function of the store
 			//	description:
 			//		Simple test of the containsValue function of the store
@@ -603,14 +568,8 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			var d = new doh.Deferred();
 			function onItem(item){
 				t.assertTrue(item !== null);
-				if(dojo.isWebKit){
-					// Safari is dumb, see comment in CssRuleStore about bug in selectorText
-					t.assertTrue(cssRuleStore.containsValue(item, 'selector', '.embeddedtestclass'));
-					t.assertTrue(cssRuleStore.containsValue(item, 'classes', '.embeddedtestclass'));
-				}else{
-					t.assertTrue(cssRuleStore.containsValue(item, 'selector', '.embeddedTestClass'));
-					t.assertTrue(cssRuleStore.containsValue(item, 'classes', '.embeddedTestClass'));
-				}
+				t.assertTrue(cssRuleStore.containsValue(item, 'selector', '.embeddedTestClass'));
+				t.assertTrue(cssRuleStore.containsValue(item, 'classes', '.embeddedTestClass'));
 				t.assertTrue(!cssRuleStore.containsValue(item, 'selector', '.embeddedTestClass2'));
 				t.assertTrue(!cssRuleStore.containsValue(item, 'classes', 'embeddedTestClass	'));
 				t.assertTrue(!cssRuleStore.containsValue(item, 'selector', null));
@@ -623,7 +582,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 					passed = true;
 				}
 				t.assertTrue(passed);
-				d.callback(true);	
+				d.callback(true);
 			}
 			cssRuleStore.fetch({
 				query: {'selector': '.embeddedTestClass'},
@@ -633,7 +592,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d;
 		},
 		function testReadAPI_getAttributes(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of the getAttributes function of the store
 			//	description:
 			//		Simple test of the getAttributes function of the store
@@ -653,7 +612,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 								||	a === 'cssText' 			|| a === 'styleSheet'
 								||	a === 'parentStyleSheet' 	|| a === 'parentStyleSheetHref'));
 				}
-				d.callback(true);	
+				d.callback(true);
 			}
 			cssRuleStore.fetch({
 				query: {'selector': '.embeddedTestClass'},
@@ -663,13 +622,13 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d;
 		},
 		function testReadAPI_getFeatures(t){
-			//	summary: 
+			//	summary:
 			//		Simple test of the getFeatures function of the store
 			//	description:
 			//		Simple test of the getFeatures function of the store
 			var cssRuleStore = dojox.data.tests.stores.CssRuleStore.createStore();
 
-			var features = cssRuleStore.getFeatures(); 
+			var features = cssRuleStore.getFeatures();
 			var count = 0;
 			for(var i in features){
 				t.assertTrue(i === "dojo.data.api.Read");
@@ -678,7 +637,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			t.assertTrue(count === 1);
 		},
 		function testReadAPI_fetch_patternMatch(t){
-			//	summary: 
+			//	summary:
 			//		Function to test pattern matching of everything swith Cla in it
 			//	description:
 			//		Function to test pattern matching of everything with Cla in it
@@ -699,7 +658,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d; //Object
 		},
 		function testReadAPI_fetch_patternMatch_caseInsensitive(t){
-			//	summary: 
+			//	summary:
 			//		Function to test exact pattern match with case insensitivity set.
 			//	description:
 			//		Function to test exact pattern match with case insensitivity set.
@@ -707,12 +666,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			var d = new doh.Deferred();
 			function completed(items, request){
 				t.is(1, items.length);
-				if(dojo.isWebKit){
-					// Safari is dumb, see comment in CssRuleStore about bug in selectorText
-					t.assertTrue(cssRuleStore.getValue(items[0], 'selector') === '.linktestclass');
-				}else{
-					t.assertTrue(cssRuleStore.getValue(items[0], 'selector') === '.linkTestClass');
-				}
+				t.assertTrue(cssRuleStore.getValue(items[0], 'selector') === '.linkTestClass');
 				d.callback(true);
 			}
 
@@ -725,19 +679,14 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d; //Object
 		},
 		function testReadAPI_fetch_patternMatch_caseSensitive(t){
-			//	summary: 
+			//	summary:
 			//		Function to test exact pattern match with case insensitivity set.
 			//	description:
 			//		Function to test exact pattern match with case insensitivity set.
 			var cssRuleStore = dojox.data.tests.stores.CssRuleStore.createStore();
 			var d = new doh.Deferred();
 			function completed(items, request){
-				if(dojo.isWebKit){
-					// Safari is dumb, see comment in CssRuleStore about bug in selectorText
-					t.is(1, items.length);
-				}else{
-					t.is(0, items.length);
-				}
+				t.is(0, items.length);
 				d.callback(true);
 			}
 
@@ -750,7 +699,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d; //Object
 		},
 		function testReadAPI_fetch_sortAlphabetic(t){
-			//	summary: 
+			//	summary:
 			//		Function to test sorting alphabetic ordering.
 			//	description:
 			//		Function to test sorting alphabetic ordering.
@@ -777,7 +726,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d; //Object
 		},
 		function testReadAPI_fetch_sortAlphabeticDescending(t){
-			//	summary: 
+			//	summary:
 			//		Function to test sorting alphabetic ordering in descending mode.
 			//	description:
 			//		Function to test sorting alphabetic ordering in descending mode.
@@ -807,7 +756,7 @@ doh.register("dojox.data.tests.stores.CssRuleStore",
 			return d; //Object
 		},
 		function testReadAPI_functionConformance(t){
-			//	summary: 
+			//	summary:
 			//		Simple test read API conformance.  Checks to see all declared functions are actual functions on the instances.
 			//	description:
 			//		Simple test read API conformance.  Checks to see all declared functions are actual functions on the instances.

@@ -1,16 +1,17 @@
-dojo.provide("dojox.encoding.crypto.RSAKey");
-dojo.experimental("dojox.encoding.crypto.RSAKey");
+define([
+	"dojo/_base/kernel",
+	"dojo/_base/declare",
+	"../../math/BigInteger",
+	"../../math/random/Simple"
+], function(kernel, declare, BigInteger, Simple) {
 
-dojo.require("dojox.math.BigInteger");
-dojo.require("dojox.math.random.Simple");
+	kernel.experimental("dojox.encoding.crypto.RSAKey");
 
 // Copyright (c) 2005  Tom Wu
 // All Rights Reserved.
 // See "LICENSE-BigInteger" in dojox.math for details.
 
-(function(){
-	var dm = dojox.math, BigInteger = dm.BigInteger, Simple = dm.random.Simple,
-		defaultRngf = function(){ return new Simple(); };
+	var defaultRngf = function(){ return new Simple(); };
 
 	// PKCS#1 (type 2, random) pad input string s to n bytes, and return a bigint
 	function pkcs1pad2(s, n, rngf) {
@@ -34,7 +35,7 @@ dojo.require("dojox.math.random.Simple");
 		return new BigInteger(ba);
 	}
 
-	dojo.declare("dojox.encoding.crypto.RSAKey", null, {
+	return declare("dojox.encoding.crypto.RSAKey", null, {
 		constructor: function(rngf){
 			// summary:
 			//	"empty" RSA key constructor
@@ -70,4 +71,4 @@ dojo.require("dojox.math.random.Simple");
 			return h.length % 2 ? "0" + h : h;
 		}
 	});
-})();
+});

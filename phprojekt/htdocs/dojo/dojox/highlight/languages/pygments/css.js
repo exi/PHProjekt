@@ -1,9 +1,5 @@
-dojo.provide("dojox.highlight.languages.pygments.css");
+define(["dojox/main", "../../_base", "./_html"], function(dojox){
 
-dojo.require("dojox.highlight._base");
-dojo.require("dojox.highlight.languages.pygments._html");
-
-(function(){
 	var dh = dojox.highlight, dhl = dh.languages;
 	dhl.css = {
 		defaultMode: {
@@ -69,7 +65,7 @@ dojo.require("dojox.highlight.languages.pygments._html");
 			},
 			{
 				className: "string double",
-				begin: '"', 
+				begin: '"',
 				end: '"',
 				illegal: "\\n",
 				relevance: 0
@@ -195,7 +191,7 @@ dojo.require("dojox.highlight.languages.pygments._html");
 					}
 				},
 				contains: [
-					"comment", "comment preproc", 
+					"comment", "comment preproc",
 					"number",
 					"string single", "string double",
 					"punctuation",
@@ -204,4 +200,6 @@ dojo.require("dojox.highlight.languages.pygments._html");
 			}
 		]
 	};
-})();
+
+	return dhl.css;
+});

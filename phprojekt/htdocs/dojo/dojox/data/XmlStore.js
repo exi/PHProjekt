@@ -1,11 +1,9 @@
-dojo.provide("dojox.data.XmlStore");
-dojo.provide("dojox.data.XmlItem");
+define(["dojo/_base/lang", "dojo/_base/declare", "dojo/_base/xhr", "dojo/data/util/simpleFetch", 
+		"dojo/_base/query", "dojo/_base/array", "dojo/_base/window", "dojo/data/util/filter", "dojox/xml/parser",
+		"dojox/data/XmlItem"], 
+  function(lang, declare, xhr, simpleFetch, domQuery, array, winUtil, filter, xmlParser, XmlItem) {
 
-dojo.require("dojo.data.util.simpleFetch");
-dojo.require("dojo.data.util.filter");
-dojo.require("dojox.xml.parser");
-
-dojo.declare("dojox.data.XmlStore", null, {
+var XmlStore = declare("dojox.data.XmlStore", null, {
 	//	summary:
 	//		A data store for XML based services or documents
 	//	description:
@@ -13,21 +11,21 @@ dojo.declare("dojox.data.XmlStore", null, {
 	
 	constructor: function(/* object */ args){
 		//	summary:
-		//		Constructor for the XML store.  
+		//		Constructor for the XML store.
 		//	args:
 		//		An anonymous object to initialize properties.  It expects the following values:
 		//		url:		The url to a service or an XML document that represents the store
 		//		rootItem:	A tag name for root items
 		//		keyAttribute:	An attribute name for a key or an identity (unique identifier)
-		//						Required for serverside fetchByIdentity, etc.  Not required for 
+		//						Required for serverside fetchByIdentity, etc.  Not required for
 		//						client side fetchItemBIdentity, as it will use an XPath-like
 		//						structure if keyAttribute was not specified.  Recommended to always
 		//						set this, though, for consistent identity behavior.
 		// 		attributeMap:   An anonymous object contains properties for attribute mapping,
 		//						{"tag_name.item_attribute_name": "@xml_attribute_name", ...}
-		//		sendQuery:		A boolean indicate to add a query string to the service URL.  
+		//		sendQuery:		A boolean indicate to add a query string to the service URL.
 		//						Default is false.
-		//		urlPreventCache: Parameter to indicate whether or not URL calls should apply 
+		//		urlPreventCache: Parameter to indicate whether or not URL calls should apply
 		//		                 the preventCache option to the xhr request.
 		if(args){
 			this.url = args.url;
@@ -45,7 +43,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 		this._modifiedItems = [];
 	},
 
-	//Values that may be set by the parser.  
+	//Values that may be set by the parser.
 	//Ergo, have to be instantiated to something
 	//So the parser knows how to set them.
 	url: "",
@@ -67,9 +65,9 @@ dojo.declare("dojox.data.XmlStore", null, {
 	//	Default is false.
 	sendQuery: false,
 
-	//	An anonymous object that contains properties for attribute mapping, 
-	//	for example {"tag_name.item_attribute_name": "@xml_attribute_name", ...}. 
-	//	This is optional. This is done so that attributes which are actual 
+	//	An anonymous object that contains properties for attribute mapping,
+	//	for example {"tag_name.item_attribute_name": "@xml_attribute_name", ...}.
+	//	This is optional. This is done so that attributes which are actual
 	//	XML tag attributes (and not sub-tags of an XML tag), can be referenced.
 	attributeMap: null,
 
@@ -132,7 +130,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 			if(attribute.charAt(0) === '@'){
 				var name = attribute.substring(1);
 				var value = element.getAttribute(name);
-				//Note that getAttribute will return null or empty string for undefined/unset 
+				//Note that getAttribute will return null or empty string for undefined/unset
 				//attributes, therefore, we should just check the return was valid
 				//non-empty string and not null.
 				return (value) ? value : defaultValue; //object
@@ -353,7 +351,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 			"dojo.data.api.Write": true
 		};
 
-		//Local XML parsing can implement Identity fairly simple via 
+		//Local XML parsing can implement Identity fairly simple via
 		if(!this.sendQuery || this.keyAttribute !== ""){
 			features["dojo.data.api.Identity"] = true;
 		}
@@ -361,7 +359,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 	},
 
 	getLabel: function(/* item */ item){
-		//	summary: 
+		//	summary:
 		//		See dojo.data.api.Read.getLabel()
 		if((this.label !== "") && this.isItem(item)){
 			var label = this.getValue(item,this.label);
@@ -373,7 +371,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 	},
 
 	getLabelAttributes: function(/* item */ item){
-		//	summary: 
+		//	summary:
 		//		See dojo.data.api.Read.getLabelAttributes()
 		if(this.label !== ""){
 			return [this.label]; //array
@@ -400,9 +398,8 @@ dojo.declare("dojox.data.XmlStore", null, {
 		//	errorHandler:
 		//		A function to call on error
 		var url = this._getFetchUrl(request);
-		console.log("XmlStore._fetchItems(): url=" + url);
 		if(!url){
-			errorHandler(new Error("No URL specified."));
+			errorHandler(new Error("No URL specified."), request);
 			return;
 		}
 		var localRequest = (!this.sendQuery ? request : {}); // use request for _getItems()
@@ -413,10 +410,9 @@ dojo.declare("dojox.data.XmlStore", null, {
 				handleAs: "xml",
 				preventCache: self.urlPreventCache
 			};
-		var getHandler = dojo.xhrGet(getArgs);
+		var getHandler = xhr.get(getArgs);
 		getHandler.addCallback(function(data){
 			var items = self._getItems(data, localRequest);
-			console.log("XmlStore._fetchItems(): length=" + (items ? items.length : 0));
 			if(items && items.length > 0){
 				fetchHandler(items, request);
 			}else{
@@ -449,7 +445,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 		if(!query){
 			return this.url;
 		}
-		if(dojo.isString(query)){
+		if(lang.isString(query)){
 			return this.url + query;
 		}
 		var queryString = "";
@@ -499,12 +495,12 @@ dojo.declare("dojox.data.XmlStore", null, {
 		var nodes = null;
 
 		if(this.rootItem !== ""){
-			nodes = dojo.query(this.rootItem, document);
+			nodes = domQuery(this.rootItem, document);
 		}else{
 			nodes = document.documentElement.childNodes;
 		}
 
-		var deep = request.queryOptions ? request.queryOptions.deep : false; 
+		var deep = request.queryOptions ? request.queryOptions.deep : false;
 		if(deep){
 			nodes = this._flattenNodes(nodes);
 		}
@@ -515,7 +511,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 			}
 			var item = this._getItem(node);
 			if(query){
-				var ignoreCase = request.queryOptions ? request.queryOptions.ignoreCase : false; 
+				var ignoreCase = request.queryOptions ? request.queryOptions.ignoreCase : false;
 				var value;
 				var match = false;
 				var j;
@@ -527,7 +523,10 @@ dojo.declare("dojox.data.XmlStore", null, {
 				for(var key in query){
 					value = query[key];
 					if(typeof value === "string"){
-						regexpList[key] = dojo.data.util.filter.patternToRegExp(value, ignoreCase);
+						regexpList[key] = filter.patternToRegExp(value, ignoreCase);
+					}else if(value){
+						// It's an object, possibly regexp, so treat it as one.
+						regexpList[key] = value;
 					}
 				}
 				for(var attribute in query){
@@ -537,7 +536,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 						value = values[j];
 						if(value){
 							var queryValue = query[attribute];
-							if((typeof value) === "string" && 
+							if((typeof value) === "string" &&
 								(regexpList[attribute])){
 								if((value.match(regexpList[attribute])) !== null){
 									match = true;
@@ -545,7 +544,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 									match = false;
 								}
 							}else if((typeof value) === "object"){
-								if(	value.toString && 
+								if(	value.toString &&
 									(regexpList[attribute])){
 									var stringValue = value.toString();
 									if((stringValue.match(regexpList[attribute])) !== null){
@@ -562,7 +561,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 								}
 							}
 						}
-						//One of the multiValue values matched, 
+						//One of the multiValue values matched,
 						//so quit looking.
 						if(match){
 							break;
@@ -572,7 +571,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 						break;
 					}
 				}
-				//Either the query was an empty object {}, which is match all, or 
+				//Either the query was an empty object {}, which is match all, or
 				//was an actual match.
 				if(emptyQuery || match){
 					items.push(item);
@@ -582,7 +581,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 				items.push(item);
 			}
 		}
-		dojo.forEach(items,function(item){
+		array.forEach(items,function(item){
 			if(item.element.parentNode){
 				item.element.parentNode.removeChild(item.element); // make it root
 			}
@@ -591,7 +590,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 	},
 
 	_flattenNodes: function(nodes){
-		//	Summary:	
+		//	Summary:
 		//		Function used to flatten a hierarchy of XML nodes into a single list for
 		//		querying over.  Used when deep = true;
 		var flattened = [];
@@ -609,7 +608,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 	},
 
 	close: function(/*dojo.data.api.Request || keywordArgs || null */ request){
-		 //	summary: 
+		 //	summary:
 		 //		See dojo.data.api.Read.close()
 	},
 
@@ -627,7 +626,6 @@ dojo.declare("dojox.data.XmlStore", null, {
 		//		An object containing initial attributes
 		//	returns:
 		//		An XML element
-		console.log("XmlStore.newItem()");
 		keywordArgs = (keywordArgs || {});
 		var tagName = keywordArgs.tagName;
 		if(!tagName){
@@ -686,7 +684,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 				this.setValues(parentInfo.parent, parentInfo.attribute, tempValues);
 				pInfo.newValue = this.getValues(parentInfo.parent, parentInfo.attribute);
 			}else{
-				this.setValues(parentInfo.parent, parentInfo.attribute, item);
+				this.setValue(parentInfo.parent, parentInfo.attribute, item);
 				pInfo.newValue = item;
 			}
 		}
@@ -700,7 +698,6 @@ dojo.declare("dojox.data.XmlStore", null, {
 		//		An XML element to delete
 		//	returns:
 		//		True
-		console.log("XmlStore.deleteItem()");
 		var element = item.element;
 		if(element.parentNode){
 			this._backupItem(item);
@@ -960,9 +957,6 @@ dojo.declare("dojox.data.XmlStore", null, {
 		//	Invalidate changes (new and/or modified elements)
 		// returns:
 		//	True
-		console.log("XmlStore.revert() _newItems=" + this._newItems.length);
-		console.log("XmlStore.revert() _deletedItems=" + this._deletedItems.length);
-		console.log("XmlStore.revert() _modifiedItems=" + this._modifiedItems.length);
 		this._newItems = [];
 		this._restoreItems(this._deletedItems);
 		this._deletedItems = [];
@@ -1008,7 +1002,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 		}
 		if(!url){
 			if(keywordArgs.onError){
-				scope = keywordArgs.scope || dojo.global;
+				scope = keywordArgs.scope || winUtil.global;
 				keywordArgs.onError.call(scope, new Error("No URL for saving content: " + this._getPostContent(item)));
 			}
 			return;
@@ -1023,14 +1017,14 @@ dojo.declare("dojox.data.XmlStore", null, {
 		var saveHandler;
 		if(method === "PUT"){
 			saveArgs.putData = this._getPutContent(item);
-			saveHandler = dojo.rawXhrPut(saveArgs);
+			saveHandler = xhr.put(saveArgs);
 		}else if(method === "DELETE"){
-			saveHandler = dojo.xhrDelete(saveArgs);
+			saveHandler = xhr.del(saveArgs);
 		}else{ // POST
 			saveArgs.postData = this._getPostContent(item);
-			saveHandler = dojo.rawXhrPost(saveArgs);
+			saveHandler = xhr.post(saveArgs);
 		}
-		scope = (keywordArgs.scope || dojo.global);
+		scope = (keywordArgs.scope || winUtil. global);
 		var self = this;
 		saveHandler.addCallback(function(data){
 			self._forgetItem(item);
@@ -1107,9 +1101,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 		//		An item to save
 		//	returns:
 		//		A post content
-		var element = item.element;
-		var declaration = "<?xml version=\"1.0\"?>"; // FIXME: encoding?
-		return declaration + dojox.xml.parser.innerXML(element); //XML string
+		return "<?xml version=\'1.0\'?>" + xmlParser.innerXML(item.element); //XML string
 	},
 
 	_getPutContent: function(item){
@@ -1124,9 +1116,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 		//		An item to save
 		//	returns:
 		//		A post content
-		var element = item.element;
-		var declaration = "<?xml version=\"1.0\"?>"; // FIXME: encoding?
-		return declaration + dojox.xml.parser.innerXML(element); //XML string
+		return "<?xml version='1.0'?>" + xmlParser.innerXML(item.element); //XML string
 	},
 
 /* internal API */
@@ -1152,9 +1142,9 @@ dojo.declare("dojox.data.XmlStore", null, {
 			var q = null;
 			//Avoid function call if possible.
 			if(this.keyAttribute === ""){
-				q = this._getXPath(element); 
+				q = this._getXPath(element);
 			}
-			return new dojox.data.XmlItem(element, this, q); //object
+			return new XmlItem(element, this, q); //object
 		}catch (e){
 			console.log(e);
 		}
@@ -1185,12 +1175,12 @@ dojo.declare("dojox.data.XmlStore", null, {
 
 	_restoreItems: function(items){
 
-		dojo.forEach(items,function(item){ 
+		array.forEach(items,function(item){
 			if(item._backup){
 				item.element = item._backup;
 				item._backup = null;
 			}
-		},this); 
+		},this);
 	},
 
 	_forgetItem: function(item){
@@ -1213,7 +1203,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 		if(element){
 			return element.ownerDocument; //DOMDocument
 		}else if(!this._document){
-			return dojox.xml.parser.parse(); // DOMDocument
+			return xmlParser.parse(); // DOMDocument
 		}
 		return null; //null
 	},
@@ -1264,7 +1254,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 	 *************************************/
 	getIdentity: function(/* item */ item){
 		//	summary:
-		//		Returns a unique identifier for an item.  
+		//		Returns a unique identifier for an item.
 		//	item:
 		//		The XML Item from the store from which to obtain its identifier.
 		if(!this.isItem(item)){
@@ -1277,7 +1267,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 				if(this.keyAttribute !== ""){
 					id = this.getValue(item,this.keyAttribute).toString();
 				}else{
-					//No specified identity, so return the dojo.query/xpath 
+					//No specified identity, so return the dojo.query/xpath
 					//for the node as fallback.
 					id = item.q;
 				}
@@ -1290,14 +1280,14 @@ dojo.declare("dojox.data.XmlStore", null, {
 		//	summary:
 		//		Returns an array of attribute names that are used to generate the identity.
 		//	description:
-		//		For XmlStore, if sendQuery is false and no keyAttribute was set, then this function 
-		//		returns null, as xpath is used for the identity, which is not a public attribute of 
+		//		For XmlStore, if sendQuery is false and no keyAttribute was set, then this function
+		//		returns null, as xpath is used for the identity, which is not a public attribute of
 		//		the item.  If sendQuery is true and keyAttribute is set, then this function
-		//		returns an array of one attribute name: keyAttribute.   This means the server side 
-		//		implementation must apply a keyAttribute to a returned node that always allows 
+		//		returns an array of one attribute name: keyAttribute.   This means the server side
+		//		implementation must apply a keyAttribute to a returned node that always allows
 		//		it to be looked up again.
 		//	item:
-		//		The item from the store from which to obtain the array of public attributes that 
+		//		The item from the store from which to obtain the array of public attributes that
 		//		compose the identifier, if any.
 		if(!this.isItem(item)){
 			throw new Error("dojox.data.XmlStore: Object supplied to getIdentity is not an item");
@@ -1305,7 +1295,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 			if(this.keyAttribute !== ""){
 				return [this.keyAttribute]; //array
 			}else{
-				//Otherwise it's either using xpath (not an attribute), or the remote store 
+				//Otherwise it's either using xpath (not an attribute), or the remote store
 				//doesn't support identity.
 				return null; //null
 			}
@@ -1334,7 +1324,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 						request.query[self.keyAttribute] = keywordArgs.identity;
 						request.queryOptions = {deep: true};
 						var items = self._getItems(data,request);
-						scope = keywordArgs.scope || dojo.global;
+						scope = keywordArgs.scope || winUtil.global;
 						if(items.length === 1){
 							if(keywordArgs.onItem){
 								keywordArgs.onItem.call(scope, items[0]);
@@ -1350,8 +1340,8 @@ dojo.declare("dojox.data.XmlStore", null, {
 						}
 					}else{
 						//Since dojo.query doesn't really support the functions needed
-						//to do child node selection on IE well and since xpath support 
-						//is flakey across browsers, it's simpler to implement a 
+						//to do child node selection on IE well and since xpath support
+						//is flakey across browsers, it's simpler to implement a
 						//pseudo-xpath parser here.
 						var qArgs = keywordArgs.identity.split("/");
 						var i;
@@ -1402,7 +1392,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 							}
 						}
 						if(keywordArgs.onItem){
-							scope = keywordArgs.scope || dojo.global;
+							scope = keywordArgs.scope || winUtil.global;
 							keywordArgs.onItem.call(scope, item);
 						}
 					}
@@ -1414,19 +1404,19 @@ dojo.declare("dojox.data.XmlStore", null, {
 				handleAs: "xml",
 				preventCache: self.urlPreventCache
 			};
-			getHandler = dojo.xhrGet(getArgs);
+			getHandler = xhr.get(getArgs);
 			
 			//Add in the callbacks for completion of data load.
 			getHandler.addCallback(handleDocument);
 			if(keywordArgs.onError){
 				getHandler.addErrback(function(error){
-					var s = keywordArgs.scope || dojo.global;
+					var s = keywordArgs.scope || winUtil.global;
 					keywordArgs.onError.call(s, error);
 				});
 			}
 		}else{
 			//Server side querying, so need to pass the keyAttribute back to the server and let it return
-			//what it will.  It SHOULD be only one item.  
+			//what it will.  It SHOULD be only one item.
 			if(self.keyAttribute !== ""){
 				var request = {query:{}};
 				request.query[self.keyAttribute] = keywordArgs.identity;
@@ -1439,13 +1429,13 @@ dojo.declare("dojox.data.XmlStore", null, {
 							item = items[0];
 						}else{
 							if(keywordArgs.onError){
-								var scope = keywordArgs.scope || dojo.global;
+								var scope = keywordArgs.scope || winUtil.global;
 								keywordArgs.onError.call(scope, new Error("More than one item was returned from the server for the denoted identity"));
 							}
 						}
 					}
 					if(keywordArgs.onItem){
-						scope = keywordArgs.scope || dojo.global;
+						scope = keywordArgs.scope || winUtil.global;
 						keywordArgs.onItem.call(scope, item);
 					}
 				};
@@ -1455,19 +1445,19 @@ dojo.declare("dojox.data.XmlStore", null, {
 					handleAs: "xml",
 					preventCache: self.urlPreventCache
 				};
-				getHandler = dojo.xhrGet(getArgs);
+				getHandler = xhr.get(getArgs);
 
 				//Add in the callbacks for completion of data load.
 				getHandler.addCallback(handleDocument);
 				if(keywordArgs.onError){
 					getHandler.addErrback(function(error){
-						var s = keywordArgs.scope || dojo.global;
+						var s = keywordArgs.scope || winUtil.global;
 						keywordArgs.onError.call(s, error);
 					});
 				}
 			}else{
 				if(keywordArgs.onError){
-					var s = keywordArgs.scope || dojo.global;
+					var s = keywordArgs.scope || winUtil.global;
 					keywordArgs.onError.call(s, new Error("XmlStore is not told that the server to provides identity support.  No keyAttribute specified."));
 				}
 			}
@@ -1475,43 +1465,7 @@ dojo.declare("dojox.data.XmlStore", null, {
 	}
 });
 
-dojo.declare("dojox.data.XmlItem", null, {
-	constructor: function(element, store, query){
-		//	summary:
-		//		Initialize with an XML element
-		//	element:
-		//		An XML element
-		//	store:
-		//		The containing store, if any.
-		//	query:
-		//		The query to use to look up a specific element.
-		//		Usually an XPath or dojo.query statement.
-		this.element = element;
-		this.store = store;
-		this.q = query;
-	}, 
-	//	summary:
-	//		A data item of 'XmlStore'
-	//	description:
-	//		This class represents an item of 'XmlStore' holding an XML element.
-	//		'element'
-	//	element:
-	//		An XML element
-	toString: function(){
-		//	summary:
-		//		Return a value of the first text child of the element
-		// 	returns:
-		//		a value of the first text child of the element
-		var str = "";
-		if(this.element){
-			for(var i = 0; i < this.element.childNodes.length; i++){
-				var node = this.element.childNodes[i];
-				if(node.nodeType === 3 || node.nodeType === 4){
-					str += node.nodeValue;
-				}
-			}
-		}
-		return str;	//String
-	}
+lang.extend(XmlStore,simpleFetch);
+
+return XmlStore;
 });
-dojo.extend(dojox.data.XmlStore,dojo.data.util.simpleFetch);

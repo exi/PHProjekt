@@ -1,15 +1,16 @@
-dojo.provide("dojox.lang.functional.lambda");
+define(["../..", "dojo/_base/kernel", "dojo/_base/lang", "dojo/_base/array"], function(dojox, dojo, lang, arr){
+	var df = lang.getObject("lang.functional", true, dojox);
 
 // This module adds high-level functions and related constructs:
 //	- anonymous functions built from the string
 
 // Acknoledgements:
-//	- lambda() is based on work by Oliver Steele 
+//	- lambda() is based on work by Oliver Steele
 //		(http://osteele.com/sources/javascript/functional/functional.js)
 //		which was published under MIT License
 
 // Notes:
-//	- lambda() produces functions, which after the compilation step are 
+//	- lambda() produces functions, which after the compilation step are
 //		as fast as regular JS functions (at least theoretically).
 
 // Lambda input values:
@@ -17,8 +18,7 @@ dojo.provide("dojox.lang.functional.lambda");
 //	- converts strings to functions
 //	- converts arrays to a functional composition
 
-(function(){
-	var df = dojox.lang.functional, lcache = {};
+	var lcache = {};
 
 	// split() is augmented on IE6 to ensure the uniform behavior
 	var split = "ab".split(/a*/).length > 1 ? String.prototype.split :
@@ -52,12 +52,12 @@ dojo.provide("dojox.lang.functional.lambda");
 					s = s + "$2";
 				}
 			}else{
-				// the point of the long regex below is to exclude all well-known 
+				// the point of the long regex below is to exclude all well-known
 				// lower-case words from the list of potential arguments
 				var vars = s.
 					replace(/(?:\b[A-Z]|\.[a-zA-Z_$])[a-zA-Z_$\d]*|[a-zA-Z_$][a-zA-Z_$\d]*:|this|true|false|null|undefined|typeof|instanceof|in|delete|new|void|arguments|decodeURI|decodeURIComponent|encodeURI|encodeURIComponent|escape|eval|isFinite|isNaN|parseFloat|parseInt|unescape|dojo|dijit|dojox|window|document|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, "").
 					match(/([a-z_$][a-z_$\d]*)/gi) || [], t = {};
-				dojo.forEach(vars, function(v){
+				arr.forEach(vars, function(v){
 					if(!(v in t)){
 						args.push(v);
 						t[v] = 1;
@@ -69,18 +69,18 @@ dojo.provide("dojox.lang.functional.lambda");
 	};
 
 	var compose = function(/*Array*/ a){
-		return a.length ? 
+		return a.length ?
 					function(){
 						var i = a.length - 1, x = df.lambda(a[i]).apply(this, arguments);
 						for(--i; i >= 0; --i){ x = df.lambda(a[i]).call(this, x); }
 						return x;
 					}
-				: 
+				:
 					// identity
 					function(x){ return x; };
 	};
 
-	dojo.mixin(df, {
+	lang.mixin(df, {
 		// lambda
 		rawLambda: function(/*String*/ s){
 			// summary:
@@ -127,4 +127,6 @@ dojo.provide("dojox.lang.functional.lambda");
 			lcache = {};
 		}
 	});
-})();
+	
+	return df;
+});

@@ -10,9 +10,9 @@
 		dijit.form.ComboBox (partial)
  ****/
 
-.soria .dijitInputContainer INPUT,
+.soria .dijitInputContainer input,
 .soria .dijitTextBox {
-	margin: 0em 0.1em;
+	margin: 0 0.1em;
 }
 
 .soria .dijitTextBox,
