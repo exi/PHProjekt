@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	"findLabel": "Najdi:",
 	"findTooltip": "Vnesite besedilo za iskanje",
@@ -8,7 +10,6 @@
 	"matchCaseTooltip": "Razlikuj velike in male črke",
 	"backwards": "Nazaj",
 	"backwardsTooltip": "Vzvratno iskanje besedila ",
-	"replaceAll": "Vse pojavitve ",
 	"replaceAllButton": "Zamenjaj vse",
 	"replaceAllButtonTooltip": "Zamenjaj celotno besedilo ",
 	"findButton": "Najdi",
@@ -21,3 +22,5 @@
 	"eofDialogTextReplace": "zamenjano "
 })
 
+//end v1.x content
+);

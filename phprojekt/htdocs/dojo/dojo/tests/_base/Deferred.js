@@ -1,14 +1,19 @@
-dojo.provide("tests._base.Deferred");
+dojo.provide("dojo.tests._base.Deferred");
 
 var delay = function(ms){
 	var d = new dojo.Deferred();
 	ms = ms || 20;
-	setTimeout(function(){
+	if(this.setTimeout){
+		setTimeout(function(){
+			d.progress(0.5);
+		},ms/2);
+		setTimeout(function(){
+			d.resolve();
+		},ms);
+	}else{
 		d.progress(0.5);
-	},ms/2);
-	setTimeout(function(){
 		d.resolve();
-	},ms);
+	}
 	return d.promise;
 };
 doh.register("tests._base.Deferred",
@@ -126,17 +131,23 @@ doh.register("tests._base.Deferred",
 			});
 			return td;
 		},
+		function syncWhenWithNoCallback(t){
+			t.is(dojo.when(3), 3);
+		},
 		function progress(t){
-			var td = new doh.Deferred();
-			var percentDone;
-			dojo.when(delay(), function(){
-				t.is(percentDone, 0.5);
-				td.callback(true);
-			},function(){},
-			function(completed){
-				percentDone = completed;
-			});
-			return td;
+			if(dojo.isBrowser){
+				var td = new doh.Deferred();
+				var percentDone;
+				dojo.when(delay(), function(){
+					t.is(percentDone, 0.5);
+					td.callback(true);
+				},function(){},
+				function(completed){
+					percentDone = completed;
+				});
+				return td;
+			}
+			return null;
 		},
 		function errorHandler(t){
 			var def = new dojo.Deferred();
@@ -254,6 +265,53 @@ doh.register("tests._base.Deferred",
 			def.errback(new Error);
 
 			t.assertEqual("succeed", retval);
+		},
+		function testDojoPromiseProgressBasic(t) {
+			var a = new dojo.Deferred();
+			var b = new dojo.Deferred();
+			var called = false;
+			
+			a.then(function() {
+				b.then(function(){
+					if (!called) {
+						console.log("Boo. ProgressBasic not called");
+					}
+				}, function(){
+					console.log("Unexpected");
+				}, function(){
+					called = true; 
+					console.log("Yay. ProgressBasic called");
+				});
+			});
+			
+			a.resolve();
+			b.progress();
+			b.resolve();
+			t.t(called);
+		},
+		
+		function testDojoPromiseProgressChain(t) {
+			var a = new dojo.Deferred();
+			var b = new dojo.Deferred();
+			var called = false;
+			
+			a.then(function() {
+				return b;
+			}).then(function(){
+				if (!called) {
+					console.log("Boo. ProgressChain not called");
+				}
+			}, function(){
+				console.log("Unexpected");
+			}, function(){
+				called = true; 
+				console.log("Yay. ProgressChain called");
+			});
+			
+			a.resolve();
+			b.progress();
+			b.resolve();
+			t.t(called);
 		}
  ]
 );

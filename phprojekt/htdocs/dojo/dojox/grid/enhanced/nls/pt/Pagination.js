@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	"descTemplate": "${2} - ${3} de ${1} ${0}",
 	"firstTip": "Primeira Página",
@@ -5,6 +7,7 @@
 	"nextTip": "Próxima página",
 	"prevTip": "Página anterior",
 	"itemTitle": "itens",
+	"singularItemTitle": "item",
 	"pageStepLabelTemplate": "Página ${0}",
 	"pageSizeLabelTemplate": "${0} itens por página",
 	"allItemsLabelTemplate": "Todos os itens",
@@ -13,5 +16,8 @@
 	"dialogIndication": "Especifique o número da página",
 	"pageCountIndication": " (${0} páginas)",
 	"dialogConfirm": "Ir",
-	"dialogCancel": "Cancelar"
+	"dialogCancel": "Cancelar",
+	"all": "todos"
 })
+//end v1.x content
+);

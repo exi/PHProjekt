@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	smiley: "Vložit emotikonu",
 	emoticonSmile: "úsměv",
@@ -17,6 +19,9 @@
 	emoticonYes: "ano",
 	emoticonNo: "ne",
 	emoticonAngel: "anděl",
-	emoticonCrying: "pláč"
+	emoticonCrying: "pláč",
+	emoticonHappy: "veselý"
 })
 
+//end v1.x content
+);

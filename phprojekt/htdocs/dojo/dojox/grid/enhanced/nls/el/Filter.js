@@ -1,7 +1,8 @@
+define(
+//begin v1.x content
 ({
 	"clearFilterDialogTitle": "Εκκαθάριση φίλτρου",
 	"filterDefDialogTitle": "Φίλτρο",
-	"incompleteRuleTip": "Αυτός ο κανόνας δεν είναι πλήρης.",
 	"ruleTitleTemplate": "Κανόνας ${0}",
 	
 	"conditionEqual": "ίσο",
@@ -21,6 +22,7 @@
 	"conditionBefore": "πριν",
 	"conditionAfter": "μετά",
 	"conditionRange": "εύρος",
+	"conditionIsEmpty": "είναι κενό",
 	
 	"all": "όλα",
 	"any": "οποιοδήποτε",
@@ -62,8 +64,8 @@
 	"anycolumn": "οποιαδήποτε στήλη",
 	"statusTipTitleNoFilter": "Γραμμή φίλτρου",
 	"statusTipTitleHasFilter": "Φίλτρο",
-	"statusTipRelPre": "Αντιστοιχία",
-	"statusTipRelPost": "κανόνες.",
+	"statusTipRelAny": "Αντιστοιχία με οποιουσδήποτε κανόνες.",
+	"statusTipRelAll": "Αντιστοιχία με όλους τους κανόνες.",
 	
 	"defaultItemsName": "στοιχεία",
 	"filterBarMsgHasFilterTemplate": "Εμφανίζονται ${0} από ${1} ${2}.",
@@ -79,10 +81,8 @@
 	"clearFilterMsg": "Με την επιλογή αυτή θα αφαιρεθεί το φίλτρο και θα εμφανιστούν όλες οι διαθέσιμες εγγραφές.",
 	"anyColumnOption": "Οποιαδήποτε στήλη",
 	
-	"trueLabelEditable": "Επιλεγμένο",
 	"trueLabel": "Αληθές",
 	"falseLabel": "Ψευδές"
 })
-
-
-
+//end v1.x content
+);

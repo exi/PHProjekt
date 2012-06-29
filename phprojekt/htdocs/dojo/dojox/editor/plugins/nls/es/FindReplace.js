@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	"findLabel": "Buscar:",
 	"findTooltip": "Especifique el texto que desee buscar",
@@ -8,7 +10,6 @@
 	"matchCaseTooltip": "Coincidir mayúsculas y minúsculas",
 	"backwards": "Hacia atrás",
 	"backwardsTooltip": "Buscar texto hacia atrás",
-	"replaceAll": "Todas las apariciones",
 	"replaceAllButton": "Sustituir todo",
 	"replaceAllButtonTooltip": "Sustituir todo el texto",
 	"findButton": "Buscar",
@@ -20,3 +21,5 @@
 	"eofDialogTextFind": "encontrado",
 	"eofDialogTextReplace": "sustituido"
 })
+//end v1.x content
+);

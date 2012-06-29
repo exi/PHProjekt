@@ -1,6 +1,11 @@
-dojo.provide("dojox.date.hebrew.Date");
+define([
+	"dojo/_base/kernel",
+	"dojo/_base/declare",
+	"./numerals"
+], function(dojo, declare, numerals){
 
-dojo.require("dojox.date.hebrew.numerals");
+dojo.getObject("date.hebrew.Date", true, dojox);
+dojo.experimental("dojox.date.hebrew.Date");
 
 dojo.declare("dojox.date.hebrew.Date", null, {
 	// summary: A Date-like object which implements the Hebrew calendar
@@ -210,7 +215,7 @@ dojo.declare("dojox.date.hebrew.Date", null, {
 		// |		console.log(date1.getDate());
 
 		return (locale || dojo.locale).match(/^he(?:-.+)?$/) ?
-			dojox.date.hebrew.numerals.getDayHebrewLetters(this._date) : this.getDate();
+			numerals.getDayHebrewLetters(this._date) : this.getDate();
 	},
 
 	getMonth: function(){
@@ -423,39 +428,48 @@ dojo.declare("dojox.date.hebrew.Date", null, {
 		return this;
 	},
 
+	_addMinutes: function(/*Number*/minutes){
+		minutes += this._minutes;
+		this.setMinutes(minutes);
+		this.setHours(this._hours + parseInt(minutes / 60));
+		return this;
+	},
+
+	_addSeconds: function(/*Number*/seconds){
+		seconds += this._seconds;
+		this.setSeconds(seconds);
+		this._addMinutes(parseInt(seconds / 60));
+		return this;
+	},
+
+	_addMilliseconds: function(/*Number*/milliseconds){
+		milliseconds += this._milliseconds;
+		this.setMilliseconds(milliseconds);
+		this._addSeconds(parseInt(milliseconds / 1000));
+		return this;
+	},
+
 	setMinutes: function(/*Number*/minutes){
-		//summary: sets the minutes (0-59)
-		minutes = +minutes;
+		//summary: sets the minutes (0-59) only.
 		this._minutes = minutes % 60;
-		this.setHours(parseInt(minutes / 60));
-		this._setDay();
 		return this;
 	},
 
 	setSeconds: function(/*Number*/seconds){
-		//summary: sets the seconds (0-59)
-
-		seconds = +seconds;
+		//summary: sets the seconds (0-59) only.
 		this._seconds = seconds % 60;
-		this.setMinutes(parseInt(seconds / 60));
-		this._setDay();
 		return this;
 	},
 
 	setMilliseconds: function(/*Number*/milliseconds){
-		//summary: sets the milliseconds
-
-		milliseconds = +milliseconds;
 		this._milliseconds = milliseconds % 1000;
-		this.setSeconds(parseInt(milliseconds / 1000));
-		this._setDay();
 		return this;
 	},
 
 	_setDay: function(){
 		var day = this._startOfYear(this._year);
 		if(this._month != 0){
-			day += (this.isLeapYear(this._year) ? this._LEAP_MONTH_START : this._MONTH_START)[this._month][this._yearType(this._year)];
+			day += (this.isLeapYear(this._year) ? this._LEAP_MONTH_START : this._MONTH_START)[this._month || 0][this._yearType(this._year)];
 		}
 		day += this._date - 1;
 		this._day = (day+1) % 7;
@@ -552,15 +566,16 @@ dojo.declare("dojox.date.hebrew.Date", null, {
 		// |		var dateHebrew = new dojox.date.hebrew.Date();
 		// |		var dateGregorian = new Date(2008,10,12);
 		// |		dateHebrew.fromGregorian(dateGregorian);
-		var result = this._computeHebrewFields(gdate);
-		this._year = result[0];
-		this._month = result[1];
-		this._date = result[2];
+
+		var result = (!isNaN(gdate)) ? this._computeHebrewFields(gdate) : NaN;
+		this._year = (!isNaN(gdate)) ? result[0] : NaN;
+		this._month = (!isNaN(gdate))? result[1] : NaN;
+		this._date = (!isNaN(gdate)) ? result[2] : NaN;
 		this._hours = gdate.getHours();
 		this._milliseconds = gdate.getMilliseconds();
 		this._minutes = gdate.getMinutes();
 		this._seconds = gdate.getSeconds();
-		this._setDay();
+		if (!isNaN(gdate)) this._setDay();
 		return this;
 	},
 
@@ -599,9 +614,10 @@ dojo.declare("dojox.date.hebrew.Date", null, {
 		// example:
 		// |		var dateHebrew = new dojox.date.hebrew.Date(5768,11,20);
 		// |		var dateGregorian = dateHebrew.toGregorian();
-		var hYear = this._year,
-			hMonth = this._month,
-			hDate = this._date,
+		
+		var hYear = this._year || 0,
+			hMonth = this._month || 0,
+			hDate = this._date || 0,
 			day = this._startOfYear(hYear);
 
 		if(hMonth != 0){
@@ -688,7 +704,7 @@ dojo.declare("dojox.date.hebrew.Date", null, {
 			Math.floor(y/400) + 1721426 - 1;
 		// At this point julianDay indicates the day BEFORE the first day
 		// of January 1, <eyear> of the Gregorian calendar.
-		if(month != 0){
+		if(month > 0) {
 			julianDay += this._GREGORIAN_MONTH_COUNT[month][isLeap ? 3 : 2];
 		}
 		
@@ -700,3 +716,5 @@ dojo.declare("dojox.date.hebrew.Date", null, {
 dojox.date.hebrew.Date.prototype.valueOf = function(){
 	return this.toGregorian().valueOf();
 };
+return dojox.date.hebrew.Date;
+});

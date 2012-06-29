@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	smiley: "Emoticon einfügen",
 	emoticonSmile: "Lächeln",
@@ -17,6 +19,9 @@
 	emoticonYes: "Ja",
 	emoticonNo: "Nein",
 	emoticonAngel: "Engel",
-	emoticonCrying: "Weinen"
+	emoticonCrying: "Weinen",
+	emoticonHappy: "Fröhlich"
 })
 
+//end v1.x content
+);

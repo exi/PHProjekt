@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	"findLabel": "חיפוש: ",
 	"findTooltip": "ציינו תמליל לחיפוש",
@@ -8,7 +10,6 @@
 	"matchCaseTooltip": "התאמת רישיות",
 	"backwards": "אחורה ",
 	"backwardsTooltip": "חיפוש תמליל אחורה ",
-	"replaceAll": "כל המופעים ",
 	"replaceAllButton": "החלפת הכל ",
 	"replaceAllButtonTooltip": "החלפת כל התמליל ",
 	"findButton": "חיפוש",
@@ -21,3 +22,5 @@
 	"eofDialogTextReplace": "הוחלפו "
 })
 
+//end v1.x content
+);

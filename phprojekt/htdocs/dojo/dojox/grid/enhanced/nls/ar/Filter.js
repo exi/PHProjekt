@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	"clearFilterDialogTitle": "محو ترشيح البيانات",
 	"filterDefDialogTitle": "ترشيح البيانات",
@@ -62,8 +64,6 @@
 	"anycolumn": "أي عمود",
 	"statusTipTitleNoFilter": "خط ترشيح البيانات",
 	"statusTipTitleHasFilter": "ترشيح البيانات",
-	"statusTipRelPre": "مطابقة",
-	"statusTipRelPost": "قواعد.",
 	
 	"defaultItemsName": "بنود",
 	"filterBarMsgHasFilterTemplate": "يتم عرض ${0} من ${1} ${2}.",
@@ -82,6 +82,8 @@
 	"trueLabel": "متحقق",
 	"falseLabel": "غير متحقق"
 })
+//end v1.x content
+);
 
 
 

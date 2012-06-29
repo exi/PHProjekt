@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	"findLabel": "Zoeken:",
 	"findTooltip": "Geef de zoektekst op",
@@ -8,7 +10,6 @@
 	"matchCaseTooltip": "Hoofdlettergevoelig",
 	"backwards": "Terug",
 	"backwardsTooltip": "Terugwaarts naar tekst zoeken",
-	"replaceAll": "Alle posities",
 	"replaceAllButton": "Alle vervangen",
 	"replaceAllButtonTooltip": "Gehele tekst vervangen",
 	"findButton": "Zoeken:",
@@ -21,3 +22,5 @@
 	"eofDialogTextReplace": "vervangen"
 })
 
+//end v1.x content
+);

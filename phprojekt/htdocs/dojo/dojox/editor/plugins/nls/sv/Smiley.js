@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	smiley: "Infoga känslolägesikon",
 	emoticonSmile: "ler",
@@ -17,6 +19,9 @@
 	emoticonYes: "ja",
 	emoticonNo: "nej",
 	emoticonAngel: "ängel",
-	emoticonCrying: "gråter"
+	emoticonCrying: "gråter",
+	emoticonHappy: "glad"
 })
 
+//end v1.x content
+);

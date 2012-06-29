@@ -1,4 +1,6 @@
-﻿({
+define(
+//begin v1.x content
+({
 	"clearFilterDialogTitle": "Effacer le filtre",
 	"filterDefDialogTitle": "Filtrer",
 	"ruleTitleTemplate": "Règle ${0}",
@@ -62,8 +64,8 @@
 	"anycolumn": "n'importe quelle colonne",
 	"statusTipTitleNoFilter": "Barre de filtre",
 	"statusTipTitleHasFilter": "Filtrer",
-	"statusTipRelPre": "Satisfaire",
-	"statusTipRelPost": "règles.",
+	"statusTipRelAny": "Répondre à l'une des règles.",
+	"statusTipRelAll": "Réponde à toutes les régles.",
 	
 	"defaultItemsName": "éléments",
 	"filterBarMsgHasFilterTemplate": "${0} sur ${1} ${2} affichés.",
@@ -82,6 +84,5 @@
 	"trueLabel": "Vrai",
 	"falseLabel": "Faux"
 })
-
-
-
+//end v1.x content
+);

@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	smiley: "Hangulatjel beszúrása",
 	emoticonSmile: "mosoly",
@@ -17,6 +19,9 @@
 	emoticonYes: "igen",
 	emoticonNo: "nem",
 	emoticonAngel: "angyal",
-	emoticonCrying: "sírás"
+	emoticonCrying: "sírás",
+	emoticonHappy: "boldog"
 })
 
+//end v1.x content
+);

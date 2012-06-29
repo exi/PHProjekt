@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	"clearFilterDialogTitle": "Filter löschen",
 	"filterDefDialogTitle": "Filter",
@@ -62,8 +64,8 @@
 	"anycolumn": "beliebige Spalte",
 	"statusTipTitleNoFilter": "Filterleiste",
 	"statusTipTitleHasFilter": "Filter",
-	"statusTipRelPre": "Übereinstimmung",
-	"statusTipRelPost": "Regeln.",
+	"statusTipRelAny": "Übereinstimmung mit einer oder mehreren beliebigen Regeln.",
+	"statusTipRelAll": "Übereinstimmung mit allen Regeln.",
 	
 	"defaultItemsName": "Elemente",
 	"filterBarMsgHasFilterTemplate": "${0} von ${1} ${2} angezeigt.",
@@ -82,6 +84,5 @@
 	"trueLabel": "Wahr",
 	"falseLabel": "Falsch"
 })
-
-
-
+//end v1.x content
+);

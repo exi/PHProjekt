@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	"findLabel": "Keresés:",
 	"findTooltip": "Adja meg a keresett szöveget",
@@ -8,7 +10,6 @@
 	"matchCaseTooltip": "Kis-nagybetűk egyeznek",
 	"backwards": "Visszafelé",
 	"backwardsTooltip": "Szöveg keresése visszafelé",
-	"replaceAll": "Minden előfordulás",
 	"replaceAllButton": "Mindent lecserél",
 	"replaceAllButtonTooltip": "Minden szöveg cseréje",
 	"findButton": "Keresés",
@@ -21,3 +22,5 @@
 	"eofDialogTextReplace": "cserélve"
 })
 
+//end v1.x content
+);

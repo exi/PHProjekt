@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	"clearFilterDialogTitle": "Brisanje filtera",
 	"filterDefDialogTitle": "Filter",
@@ -62,8 +64,8 @@
 	"anycolumn": "bilo koji stupac",
 	"statusTipTitleNoFilter": "Traka filtera",
 	"statusTipTitleHasFilter": "Filter",
-	"statusTipRelPre": "Odgovara",
-	"statusTipRelPost": "pravila.",
+	"statusTipRelAny": "Usporedi bilo koja pravila.",
+	"statusTipRelAll": "Usporedi sva pravila.",
 	
 	"defaultItemsName": "stavke",
 	"filterBarMsgHasFilterTemplate": "${0} od ${1} ${2} prikazano.",
@@ -82,6 +84,5 @@
 	"trueLabel": "True",
 	"falseLabel": "False"
 })
-
-
-
+//end v1.x content
+);

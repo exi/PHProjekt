@@ -1,3 +1,5 @@
+define(
+//begin v1.x content
 ({
 	"clearFilterDialogTitle": "Borrar filtro",
 	"filterDefDialogTitle": "Filtro",
@@ -62,8 +64,8 @@
 	"anycolumn": "cualquier columna",
 	"statusTipTitleNoFilter": "Barra de filtro",
 	"statusTipTitleHasFilter": "Filtro",
-	"statusTipRelPre": "Coincidir",
-	"statusTipRelPost": "reglas.",
+	"statusTipRelAny": "Coincidir con cualquier regla.",
+	"statusTipRelAll": "Coincidir con todas las reglas.",
 	
 	"defaultItemsName": "elementos",
 	"filterBarMsgHasFilterTemplate": "${0} de ${1} ${2} mostrados.",
@@ -82,6 +84,5 @@
 	"trueLabel": "Verdadero",
 	"falseLabel": "Falso"
 })
-
-
-
+//end v1.x content
+);
