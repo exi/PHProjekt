@@ -23,6 +23,8 @@ dojo.provide("phpr.Default.System.Form.HorizontalSlider");
 dojo.provide("phpr.Default.System.Form.Rating");
 
 dojo.require("dojox.form.Rating");
+dojo.require("dijit.form.CheckBox");
+dojo.require("dijit.form.HorizontalSlider");
 
 dojo.declare("phpr.Default.System.Form.CheckBox", dijit.form.CheckBox, {
     // Summary:
@@ -105,24 +107,8 @@ dojo.declare("phpr.Default.System.Form.MultiFilteringSelect", dijit.form.Filteri
             var srcNodeRef = this.srcNodeRef;
 
             // if user didn't specify store, then assume there are option tags
-            this.store = new phpr.Default.System._ComboBoxDataStore(srcNodeRef);
+            this.store = new phpr.Default.System._DataList({}, srcNodeRef);
             this.selection = this.store.getSelectedItems();
-
-            // if there is no value set and there is an option list, set
-            // the value to the first value to be consistent with native
-            // Select
-
-            // Firefox and Safari set value
-            // IE6 and Opera set selectedIndex, which is automatically set
-            // by the selected attribute of an option tag
-            // IE6 does not set value, Opera sets value = selectedIndex
-            if (!("value" in this.params)) {
-                var item = (this.item = this.store.fetchSelectedItem());
-                if (item) {
-                    var valueField = this._getValueField();
-                    this.value = this.store.getValue(item, valueField);
-                }
-            }
         }
 
         this.inherited(arguments);
@@ -152,6 +138,7 @@ dojo.declare("phpr.Default.System.Form.MultiFilteringSelect", dijit.form.Filteri
     _onKey: function(evt) {
         this.inherited(arguments);
         if (evt.charOrCode == dojo.keys.ENTER) {
+            debugger;
             if (this.item) {
                 this._addToSelection(this.item);
             }
@@ -181,7 +168,7 @@ dojo.declare("phpr.Default.System.Form.MultiFilteringSelect", dijit.form.Filteri
     _openResultList: function(results, dataObject) {
         var newResults = [];
         dojo.forEach(results, function(item, i) {
-            if (!this.selection.hasOwnProperty(dataObject.store.getValue(item, this._getValueField()))) {
+            if (!this.selection.hasOwnProperty(item.value)) {
                 newResults.push(item);
             }
         }, this);
@@ -251,17 +238,28 @@ dojo.declare("phpr.Default.System.Form.MultiFilteringSelect", dijit.form.Filteri
     _setMaxOptions: function() {}
 });
 
-dojo.declare("phpr.Default.System._ComboBoxDataStore", dijit.form._ComboBoxDataStore, {
+dojo.require("dojo.store.Memory");
+dojo.declare("phpr.Default.System._DataList", dojo.store.Memory, {
     _selectedItems: null,
-    constructor: function( /*DomNode*/ root) {
+    constructor: function(options, /*DomNode*/ root) {
+        function toItem(/*DOMNode*/ option) {
+            return {
+                id: option.value,
+                value: option.value,
+                name: dojo.trim(option.innerText || option.textContent || '')
+            };
+        }
+
         this._selectedItems = {};
         var self = this;
-        dojo.query("> option", this.root).forEach(function(option) {
+        dojo.query("> option", root).forEach(function(option) {
             if (option.selected && option.value) {
                 var text = (option.innerText || option.textContent || '');
                 self._selectedItems[option.value] = text;
             }
         });
+
+        this.data = dojo.query("option", root).map(toItem);
     },
     getSelectedItems: function() {
         return this._selectedItems;

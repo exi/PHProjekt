@@ -24,6 +24,8 @@ dojo.provide("phpr.Default.System.Grid._View");
 dojo.provide("phpr.Filter.ExpandoPane");
 
 dojo.require("dojox.grid.cells");
+dojo.require("dojox.grid.cells._base");
+dojo.require("dojox.grid.cells.dijit");
 dojo.require("dojox.grid._View");
 dojo.require("dojox.layout.ExpandoPane");
 
@@ -70,7 +72,7 @@ phpr.Default.System.Grid.formatIcon = function(value) {
     return '<div class="' + data[0] + '" title="' + data[1] + '"></div>';
 };
 
-dojo.declare("phpr.Default.System.Grid.cells.Percentage", dojox.grid.cells._Widget, {
+dojo.declare("phpr.Default.System.Grid.cells.Percentage", dojox.grid.cells._Base, {
     // summary:
     //    Redefine the function to return the correct value
     // description:
@@ -158,7 +160,7 @@ dojo.declare("phpr.Default.System.Grid.cells.DateTextBox", dojox.grid.cells.Date
     }
 });
 
-dojo.declare("phpr.Default.System.Grid.cells.Text", dojox.grid.cells._Widget, {
+dojo.declare("phpr.Default.System.Grid.cells.Text", dojox.grid.cells._Base, {
     setValue: function(inRowIndex, inValue) {
         if (this.widget && this.widget.setValue) {
             this.widget.set('value', inValue);
@@ -295,7 +297,7 @@ dojo.declare("phpr.Default.System.Grid.cells.Textarea", phpr.Default.System.Grid
     }
 });
 
-dojo.declare("phpr.Default.System.Grid.cells.Time", dojox.grid.cells._Widget, {
+dojo.declare("phpr.Default.System.Grid.cells.Time", dojox.grid.cells._Base, {
     setValue: function(inRowIndex, inValue) {
         inValue = phpr.date.getIsoTime(inValue);
         if (this.widget && this.widget.setValue) {
@@ -324,7 +326,7 @@ dojo.declare("phpr.Default.System.Grid.cells.Time", dojox.grid.cells._Widget, {
 
 var dgc = dojox.grid.cells;
 dgc.DateTextBox.markupFactory = function(node, cell) {
-    dgc._Widget.markupFactory(node, cell);
+    dgc._Base.markupFactory(node, cell);
 };
 
 dojo.declare('phpr.Default.System.Grid._View', [dijit._Widget, dijit._Templated, dojox.grid._View], {

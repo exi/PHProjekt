@@ -39,8 +39,9 @@ dojo.require("dijit.Dialog");
 dojo.require("dijit.layout._LayoutWidget");
 dojo.require("dijit._Templated");
 dojo.require("dijit.form.FilteringSelect");
-dojo.require("dijit.layout.ContentPane");
+dojo.require("dijit.layout.TabController");
 dojo.require("dojox.dtl.Inline");
+dojo.require("dojox.dtl.Context");
 
 // Global vars
 var module           = null;

@@ -22,7 +22,7 @@ dojo.provide("phpr.Module.Designer");
 
 contentModuleDesignerSource = [];
 
-dojo.require("dojo.dnd.Source");
+dojo.require("dojo.dnd.AutoSource");
 
 dojo.declare("phpr.Module.Designer", dojo.dnd.AutoSource, {
     // Summary:

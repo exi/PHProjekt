@@ -21,6 +21,7 @@
 dojo.provide("phpr.Calendar2.Main");
 dojo.provide("phpr.Calendar2.CalendarViewMixin");
 dojo.require("dijit.Dialog");
+dojo.require("dijit.form.Select");
 dojo.require("phpr.Calendar2.Selector");
 dojo.require("phpr.Default.System.ProxyableStore");
 

@@ -523,7 +523,7 @@ dojo.declare("phpr.Default.Main", phpr.Default.System.Component, {
         button = new phpr.Default.SearchButton({
             onChange: dojo.hitch(this, "showSearchSuggest"),
             onSubmit: dojo.hitch(this, "showSearchResults")
-        });
+        }, dojo.create('div'));
 
         this.searchButton = button;
 

@@ -10,18 +10,16 @@
 
     <script type="text/javascript">
         var djConfig = {isDebug: false, parseOnLoad: true, bindEncoding: "utf-8",
-                        locale: '<?php echo $this->language; ?>'};
+                        locale: '<?php echo $this->language; ?>', baseUrl: "dojo/release/dojo/dojo/"};
     </script>
     <?php
     if (true === $this->isLoggedIn) {
         if ($this->compressedDojo) {
         ?>
-            <script type="text/javascript" src="<?php echo $this->webpath; ?>dojo/release/dojo/dojo/dojo.js"></script>
             <script type="text/javascript" src="<?php echo $this->webpath; ?>dojo/release/dojo/dojo/phprojekt.js"></script>
         <?php
         } else {
         ?>
-            <script type="text/javascript" src="<?php echo $this->webpath; ?>dojo/release/dojo/dojo/dojo.js.uncompressed.js"></script>
             <script type="text/javascript" src="<?php echo $this->webpath; ?>dojo/release/dojo/dojo/phprojekt.js.uncompressed.js"></script>
         <?php
         }

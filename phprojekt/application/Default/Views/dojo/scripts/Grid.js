@@ -1588,7 +1588,7 @@ dojo.declare("phpr.Default.Grid", phpr.Default.System.Component, {
             var useCheckBox = this.useCheckbox();
             var index       = e.cellIndex;
             if ((!useCheckBox || (useCheckBox && index !== 0)) && e.cell.editable) {
-                dijit.showTooltip(phpr.nls.get("Double click to edit"), e.cellNode, 'above');
+                dijit.showTooltip(phpr.nls.get("Double click to edit"), e.cellNode, [ 'above' ]);
             }
         }
     },

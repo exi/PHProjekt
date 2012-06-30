@@ -22,8 +22,9 @@ dojo.provide("phpr.Gantt.Form.HorizontalRangeSlider");
 
 dojo.require("dojo.dnd.Moveable");
 dojo.require("dijit.form.HorizontalSlider");
+dojo.require("dojox.form.RangeSlider");
 
-dojo.declare("phpr.Default.System.Form._RangeSliderMixin", dojox.form._RangeSliderMixin, {
+dojo.declare("phpr.Default.System.Form.RangeSlider", dojox.form.RangeSlider, {
     postCreate: function() {
         // Summary:
         //    Overwrite function for redefine the movers,
@@ -83,7 +84,7 @@ dojo.declare("phpr.Default.System.Form._RangeSliderMixin", dojox.form._RangeSlid
         dojo.stopEvent(e);
     },
 
-    _selectBar:function(name) {
+    _selectBar: function(name) {
         // Summary:
         //    Do not allow the focus
         // Description:
@@ -96,7 +97,6 @@ dojo.declare("phpr.Default.System.Form._RangeSliderMixin", dojox.form._RangeSlid
     }
 });
 
-dojo.declare("phpr.Gantt.Form.HorizontalRangeSlider", [dijit.form.HorizontalSlider, phpr.Default.System.Form._RangeSliderMixin], {
+dojo.declare("phpr.Gantt.Form.HorizontalRangeSlider", [dijit.form.HorizontalSlider, phpr.Default.System.Form.RangeSlider], {
     templateString: __phpr_templateCache['phpr.Gantt.template.HorizontalRangeSlider.html']
-    }
-);
+});
