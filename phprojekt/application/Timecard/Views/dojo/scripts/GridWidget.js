@@ -140,7 +140,7 @@ dojo.provide("phpr.Timecard.GridWidget");
         _supportingWidgets: [],
 
         uninitialize: function() {
-            dojo.foreach(this._supportingWidgets, function(widget) {
+            dojo.forEach(this._supportingWidgets, function(widget) {
                 widget.destroyRecursive();
             });
         },
