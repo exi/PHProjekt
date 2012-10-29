@@ -42,5 +42,66 @@ dojo.declare("phpr.Timecard.Main", phpr.Default.Main, {
             store: new dojo.store.JsonRest({target: 'index.php/Timecard/Timecard/'})
         });
         phpr.viewManager.getView().gridBox.set('content', this.grid);
+        this.addExportButton();
+    },
+
+    addExportButton: function() {
+        debugger;
+        var params = {
+            label:     phpr.nls.get('Export to CSV'),
+            showLabel: true,
+            baseClass: "positive",
+            iconClass: "export",
+            disabled:  false
+        };
+        this._exportButton = new dijit.form.Button(params);
+
+        this.garbageCollector.addNode(this._exportButton);
+
+        phpr.viewManager.getView().buttonRow.domNode.appendChild(this._exportButton.domNode);
+
+        this._exportButton.subscribe(
+            "yearMonthChanged",
+            dojo.hitch(this, function(year, month) {
+                if (this._exportButtonFunction) {
+                    dojo.disconnect(this._exportButtonFunction);
+                }
+                this._exportButtonFunction = dojo.connect(
+                    this._exportButton,
+                    "onClick",
+                    dojo.hitch(this, "exportData", year, month)
+                );
+            })
+        );
+        this.garbageCollector.addEvent(
+            dojo.connect(
+                this._exportButton, "onClick", dojo.hitch(this, "exportData")
+            )
+        );
+    },
+
+    exportData: function(year, month) {
+        debugger;
+        var start = new Date(),
+            end = new Date();
+        start.setFullYear(year);
+        start.setMonth(month);
+        end.setFullYear(year);
+        end.setMonth(month + 1);
+
+        phpr.get({
+            url: "index.php/Timecard/Timecard/",
+            headers: {
+                "Content-Type": "text/csv"
+            },
+            content: {
+                filter: dojo.toJson({
+                    startDatetime: {
+                        "!ge": start.toString(),
+                        "!lt": end.toString()
+                    }
+                })
+            }
+        });
     }
 });

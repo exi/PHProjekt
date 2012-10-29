@@ -628,7 +628,7 @@ dojo.provide("phpr.Timecard.GridWidget");
 
     dojo.declare("phpr.Timecard.GridWidget", [dijit._Widget, dijit._Templated], {
         templateString: ['<div>',
-            '<div class="yearMonthSelector" dojoAttachpoint="yearMonthSelector" dojoType="phpr.Timecard.YearMonthSelector">',
+            '<div class="yearMonthSelector" dojoType="phpr.Timecard.YearMonthSelector">',
             '</div>',
             '<table class="timecardGrid" dojoAttachPoint="tableNode">',
             '  <thead>',
@@ -719,7 +719,7 @@ dojo.provide("phpr.Timecard.GridWidget");
 
         buildRendering: function() {
             this.inherited(arguments);
-            this.connect(this.yearMonthSelector, "onDateChange", dojo.hitch(this, this.setYearAndMonth));
+            this.subscribe("yearMonthChanged", dojo.hitch(this, this.setYearAndMonth));
         },
 
         update: function() {
